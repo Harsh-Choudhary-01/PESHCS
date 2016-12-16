@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.harshchoudhary</groupId>
   <version>.1</version>
-  <artifactId>BuildAI</artifactId>
+  <artifactId>PESHCS</artifactId>
   <dependencies>
     <dependency>
       <groupId>com.sparkjava</groupId>
@@ -63,7 +63,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>BuildAI</finalName>
+          <finalName>PESHCS</finalName>
           <appendAssemblyId>false</appendAssemblyId>
           <archive>
             <manifest>

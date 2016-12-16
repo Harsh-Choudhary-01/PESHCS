@@ -1,1 +1,1 @@
-web:    java -jar target/BuildAI.jar
+web:    java -jar target/PESHCS.jar
