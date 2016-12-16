@@ -1,0 +1,6 @@
+{
+  "name": "BuildAI: Java",
+  "description": "Online machine learning tool for development",
+  "image": "heroku/java",
+  "addons": [ "heroku-postgresql" ]
+}
