@@ -5,7 +5,7 @@
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <html>
-<#assign verified = loggedIn && user.email_verified>
+<#assign verified = loggedIn>
 	<head>
 		<title>PESH CS</title>
 		<meta charset="utf-8" />
@@ -22,9 +22,12 @@
 				<div class="inner">
 					<nav>
 						<ul>
-							<li><a href="#intro">Welcome</a></li>
 							<#if verified>
+								<li><a href="#intro">Welcome ${user.nickname}</a></li>
 								<li><a href="#one">Assignments</a></li>
+								<li><a href="/logout">Logout</a></li>
+							<#else>
+								<li><a href="#intro">Welcome</a></li>
 							</#if>
 						</ul>
 					</nav>
@@ -111,8 +114,6 @@
 		    <script>
 		      $(document).ready(function()
 		      {
-		      	if(${(loggedIn && !user.email_verified)?c})
-		      		alert("Please verify your email first");
 		        if(!${loggedIn?c}) {
 		        	var lock = new Auth0Lock('${clientId}', '${clientDomain}', {
 		        		loginAfterSignup: false , 

@@ -43,6 +43,11 @@ public class Main {
             response.redirect("/");
         });
 
+        before("/logout", (request, response) -> {
+            request.session().attribute("token" , null);
+            response.redirect("/");
+        });
+
     }
 
     static Map<String, Object> getUser(Request request) {
