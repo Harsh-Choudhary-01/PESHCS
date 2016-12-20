@@ -75,21 +75,23 @@
 						<#else>
 							<section id="one" class="wrapper style2 spotlights">
 								<#if role == "teacher">
-									<#list classes as class>
-										<section>
-											<#assign s = ("images/pic0" + (class?counter % 2 + 1) + ".jpg")>
-											<img src="${s}" alt="" data-position="center center"/>
-											<div class="content">
-												<div class="inner">
-													<h2>${class.name}</h2>
-													<p>Number of Assignments: ${class.numAssignments}<br>Number of Joined Students: ${class.numJoined}</p>
-													<ul class="actions">
-														<li><a href="#" class="button">Edit Class</a></li>
-													</ul>
+									<#if classes?has_content>
+										<#list classes as class>
+											<section>
+												<#assign s = ("images/pic0" + (class?counter % 2 + 1) + ".jpg")>
+												<img src="${s}" alt="" data-position="center center"/>
+												<div class="content">
+													<div class="inner">
+														<h2>${class.name}</h2>
+														<p>Number of Assignments: ${class.numAssignments}<br>Number of Joined Students: ${class.numJoined}</p>
+														<ul class="actions">
+															<li><a href="#" class="button">Edit Class</a></li>
+														</ul>
+													</div>
 												</div>
-											</div>
-										</section>
-									</#list>
+											</section>
+										</#list>
+									</#if>
 									<section>
 										<img src="images/pic02.jpg" alt="" data-position="center center"/>
 										<div class="content">

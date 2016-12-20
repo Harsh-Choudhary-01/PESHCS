@@ -38,6 +38,7 @@ public class Main {
             if((Boolean) attributes.get("loggedIn")) {
                 attributes.put("user", user.get("claims"));
                 Map<String , Object> metadata = getDynamicUser((String)((Map<String , Object>)attributes.get("user")).get("user_id"));
+                attributes.put("metadata" , metadata);
                 if(metadata != null)
                 {
                     Connection connection = null;
@@ -69,7 +70,7 @@ public class Main {
                         if(connection != null) try { connection.close(); } catch(SQLException e) {}
                     }
                 }
-                attributes.put("metadata" , metadata);
+
             }
             attributes.put("message", "Hello World!");
             attributes.put("clientId", clientId);
