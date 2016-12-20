@@ -96,7 +96,7 @@
 										<img src="images/pic02.jpg" alt="" data-position="center center"/>
 										<div class="content">
 											<div class="inner">
-												<#if classes?size == 0>
+												<#if !classes?has_content>
 													<h2>No Classes</h2>
 												<#else>
 													<h2>Create New Class</h2>
