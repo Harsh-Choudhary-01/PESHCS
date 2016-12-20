@@ -44,9 +44,13 @@ public class Main {
                     Connection connection = null;
                     try {
                         if (((Map<String, Object>) metadata.get("app_metadata")).get("role") == "teacher") {
+                            System.out.println("Is teacher");
                             connection = DatabaseUrl.extract().getConnection();
                             Statement stmt = connection.createStatement();
+                            String query = "SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'";
+                            System.out.println("Querying with string: " + query);
                             ResultSet rs = stmt.executeQuery("SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'");
+                            System.out.println("finished query");
                             //loop through classes and get info for page, construct class map to pass to ftl, rmbr to test for null exceptions
                             ArrayList<Object> classes = new ArrayList<>();
                             Map<String, Object> classObject = new HashMap<>();
@@ -58,8 +62,10 @@ public class Main {
                                 classObject.put("numAssignments" , rs.getInt("assignLength")); //num Assignments
                                 classObject.put("numJoined" , rs.getInt("joinedStudents")); //num Joined
                                 classes.add(classObject);
+                                System.out.println("classObject is: " + classObject);
                             }
                             attributes.put("classes" , classes);
+                            System.out.println("classes is: " + classes);
                         }
                     }
                     catch (Exception e)
