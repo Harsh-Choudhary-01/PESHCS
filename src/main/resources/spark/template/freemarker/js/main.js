@@ -67,7 +67,6 @@
 				$sidebar_a
 					.addClass('scrolly')
 					.on('click', function() {
-
 						var $this = $(this);
 
 						// External link? Bail.
@@ -88,7 +87,6 @@
 						var	$this = $(this),
 							id = $this.attr('href'),
 							$section = $(id);
-
 						// No section for this link? Bail.
 							if ($section.length < 1)
 								return;

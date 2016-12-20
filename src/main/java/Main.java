@@ -41,19 +41,12 @@ public class Main {
                 attributes.put("metadata" , metadata);
                 if(metadata != null)
                 {
-                    System.out.println("Metadata is not null");
-
                     Connection connection = null;
                     try {
                         if (((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("teacher")) {
-                            System.out.println("Is teacher");
                             connection = DatabaseUrl.extract().getConnection();
                             Statement stmt = connection.createStatement();
-                            String query = "SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'";
-                            System.out.println("Querying with string: " + query);
                             ResultSet rs = stmt.executeQuery("SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'");
-                            System.out.println("finished query");
-                            //loop through classes and get info for page, construct class map to pass to ftl, rmbr to test for null exceptions
                             ArrayList<Object> classes = new ArrayList<>();
                             Map<String, Object> classObject = new HashMap<>();
                             while(rs.next())
@@ -64,22 +57,21 @@ public class Main {
                                 classObject.put("numAssignments" , rs.getInt("assignLength")); //num Assignments
                                 classObject.put("numJoined" , rs.getInt("joinedLength")); //num Joined
                                 classes.add(classObject);
-                                System.out.println("classObject is: " + classObject);
                             }
-                            attributes.put("classes" , classes);
                             System.out.println("classes is: " + classes);
                         }
                     }
                     catch (Exception e)
                     {
-                        System.out.println(e);
+                        System.out.println("Occur" + e);
                     }
                     finally {
                         if(connection != null) try { connection.close(); } catch(SQLException e) {}
                     }
                 }
-
             }
+            attributes.put("t" , request.session().attribute("t"));
+            request.session().removeAttribute("t");
             attributes.put("message", "Hello World!");
             attributes.put("clientId", clientId);
             attributes.put("clientDomain", clientDomain);
@@ -131,7 +123,6 @@ public class Main {
                         .header("content-type", "application/json")
                         .body("{\"app_metadata\" : { \"classes\" : " + classArray + "} }")
                         .asString();
-                System.out.println("Headers: " + res.getHeaders().toString() + "Body: " + res.getBody() + "Status: " + res.getStatusText());
                 Connection connection = null;
                 try
                 {
@@ -148,7 +139,8 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            response.redirect("/?t=one");
+            request.session().attribute("t" , "one");
+            response.redirect("/");
         });
 
     }

@@ -6,6 +6,7 @@
 -->
 <html>
 <#assign verified = loggedIn>
+<#assign target = t!"none">
 <#if loggedIn>
 	<#assign role = (metadata.app_metadata.role)!"no_role">
 </#if>
@@ -28,9 +29,9 @@
 								<li><a href="#intro">Welcome ${user.nickname}</a></li>
 								<#if role != "no_role">
 									<#if role == "student">
-										<li><a href="#one">Assignments</a></li>
+										<li><a href="#one" id="one">Assignments</a></li>
 									<#else>
-										<li><a href="#one">Classes</a></li>
+										<li><a href="#one" id="one">Classes</a></li>
 									</#if>
 								</#if>
 								<li><a href="logout">Logout</a></li>
@@ -156,10 +157,25 @@
 			<script src="js/main.js"></script>
 			<script src="https://cdn.auth0.com/js/lock/10.0/lock.min.js"></script>
 		    <script>
+				function simClick(id)
+				{
+					var elem = document.getElementById(id);
+					if(elem != null)
+					{
+						console.log("ran stuff");
+						elem.click();
+					}
+				}
 				if(${(loggedIn && role == "no_role")?c})
 					window.location.href="#role";
 		      $(document).ready(function()
 		      {
+		      	if("${target}" != "none")
+		      	{
+		      		setTimeout(function() {
+		      			simClick("${target}");
+		      		} , 500);
+		      	}
 		      	$(".student").click(function(e)
 		      	{
 		      		e.preventDefault();
