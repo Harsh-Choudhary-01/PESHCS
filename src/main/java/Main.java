@@ -48,10 +48,9 @@ public class Main {
                             Statement stmt = connection.createStatement();
                             ResultSet rs = stmt.executeQuery("SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'");
                             ArrayList<Object> classes = new ArrayList<>();
-                            Map<String, Object> classObject = new HashMap<>();
                             while(rs.next())
                             {
-                                classObject.clear();
+                                Map<String, Object> classObject = new HashMap<>();
                                 classObject.put("name" , rs.getString(1)); //className
                                 classObject.put("classID" , rs.getString(2)); //classID
                                 classObject.put("numAssignments" , rs.getInt("assignLength")); //num Assignments
