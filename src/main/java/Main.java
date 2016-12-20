@@ -41,9 +41,11 @@ public class Main {
                 attributes.put("metadata" , metadata);
                 if(metadata != null)
                 {
+                    System.out.println("Metadata is not null");
+
                     Connection connection = null;
                     try {
-                        if (((Map<String, Object>) metadata.get("app_metadata")).get("role") == "teacher") {
+                        if (((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("teacher")) {
                             System.out.println("Is teacher");
                             connection = DatabaseUrl.extract().getConnection();
                             Statement stmt = connection.createStatement();
