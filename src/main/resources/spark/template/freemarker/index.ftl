@@ -83,7 +83,7 @@
 												<img src="${s}" alt="" data-position="center center"/>
 												<div class="content">
 													<div class="inner">
-														<h2>${class.name}</h2>
+														<h2>${class.classID}</h2>
 														<p>Number of Assignments: ${class.numAssignments}<br>Number of Joined Students: ${class.numJoined}</p>
 														<ul class="actions">
 															<li><a href="#" class="button">Edit Class</a></li>

@@ -58,6 +58,7 @@ public class Main {
                                 classObject.put("numJoined" , rs.getInt("joinedLength")); //num Joined
                                 classes.add(classObject);
                             }
+                            attributes.put("classes" , classes);
                             System.out.println("classes is: " + classes);
                         }
                     }
