@@ -62,7 +62,7 @@ public class Main {
                                 classObject.put("name" , rs.getString(1)); //className
                                 classObject.put("classID" , rs.getString(2)); //classID
                                 classObject.put("numAssignments" , rs.getInt("assignLength")); //num Assignments
-                                classObject.put("numJoined" , rs.getInt("joinedStudents")); //num Joined
+                                classObject.put("numJoined" , rs.getInt("joinedLength")); //num Joined
                                 classes.add(classObject);
                                 System.out.println("classObject is: " + classObject);
                             }
