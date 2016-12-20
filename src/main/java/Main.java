@@ -113,7 +113,11 @@ public class Main {
                 HttpResponse<JsonNode> appMetadata = Unirest.get("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id") + "?fields=app_metadata")
                         .header("authorization", "Bearer " + managementToken)
                         .asJson();
-                String classArray = appMetadata.getBody().getObject().getJSONObject("app_metadata").getJSONArray("classes").put(classID).toString();
+                String classArray;
+                if(appMetadata.getBody().getObject().getJSONObject("app_metadata").has("classes"))
+                    classArray = appMetadata.getBody().getObject().getJSONObject("app_metadata").getJSONArray("classes").put(classID).toString();
+                else
+                    classArray = "[" + classID + "]";
                 Unirest.patch("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id"))
                         .header("authorization", "Bearer " + managementToken)
                         .header("content-type", "application/json")
