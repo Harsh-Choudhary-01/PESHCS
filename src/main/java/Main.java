@@ -117,12 +117,13 @@ public class Main {
                 if(appMetadata.getBody().getObject().getJSONObject("app_metadata").has("classes"))
                     classArray = appMetadata.getBody().getObject().getJSONObject("app_metadata").getJSONArray("classes").put(classID).toString();
                 else
-                    classArray = "[" + classID + "]";
-                Unirest.patch("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id"))
+                    classArray = "[\"" + classID + "\"]";
+                HttpResponse<String> res = Unirest.patch("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id"))
                         .header("authorization", "Bearer " + managementToken)
                         .header("content-type", "application/json")
                         .body("{\"app_metadata\" : { \"classes\" : " + classArray + "} }")
                         .asString();
+                System.out.println("Headers: " + res.getHeaders().toString() + "Body: " + res.getBody() + "Status: " + res.getStatusText());
                 Connection connection = null;
                 try
                 {
