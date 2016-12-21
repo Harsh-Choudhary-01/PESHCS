@@ -46,7 +46,7 @@ public class Main {
                     ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , cardinality(invitedStudents) AS invitedLength FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                     while (rs.next())
                     {
-                        classInfo.clear();
+                        classInfo = new HashMap<>();
                         classInfo.put("className" , rs.getString(0));
                         classInfo.put("assignLength" , rs.getInt("assignLength"));
                         classInfo.put("joinedLength" , rs.getInt("joinedLength"));
@@ -56,7 +56,7 @@ public class Main {
                 }
                 catch (Exception e)
                 {
-
+                    System.out.println("class exception:"  + e);
                 }
                 finally {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
