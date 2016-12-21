@@ -31,6 +31,44 @@ public class Main {
         SecureRandom random = new SecureRandom();
         get("/hello", (request, response) -> "Hello World");
 
+        get("/class/:classID" , (request, response) -> {
+            Map<String, Object> attributes = new HashMap<>();
+            String classID = request.params(":classID");
+            Map<String , Object> classInfo = null;
+            Connection connection = null;
+            Map<String , Object> user = getUser(request);
+            if((Boolean) user.get("loggedIn")) {
+                user = (Map<String, Object>) user.get("claims");
+                try
+                {
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , cardinality(invitedStudents) AS invitedLength FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
+                    while (rs.next())
+                    {
+                        classInfo.clear();
+                        classInfo.put("className" , rs.getString(0));
+                        classInfo.put("assignLength" , rs.getInt("assignLength"));
+                        classInfo.put("joinedLength" , rs.getInt("joinedLength"));
+                        classInfo.put("invitedLength" , rs.getInt("invitedLength"));
+                        classInfo.put("classID" , classID);
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            if(classInfo == null)
+                halt(404 , "Page Not Found");
+            else
+                attributes.put("class" , classInfo);
+            return  new ModelAndView(attributes , "class.ftl");
+        }, new FreeMarkerEngine());
+
         get("/", (request, response) -> {
             Map<String, Object> attributes = new HashMap<>();
             Map<String , Object> user = getUser(request);
@@ -143,6 +181,28 @@ public class Main {
             response.redirect("/");
         });
 
+        post("/class/:classID" , (request, response) -> {
+            Connection connection = null;
+            String classID = request.params(":classID");
+            Map<String, Object> user = getUser(request);
+            System.out.println(request.body());
+            if((Boolean) user.get("loggedIn")) {
+                user = (Map<String , Object>) user.get("claims");
+                try
+                {
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    stmt.executeUpdate("UPDATE classes SET className = '" + request.body() + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
+                }
+                catch (Exception e) {
+
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            return  request.body();
+        });
     }
 
     private static Map<String, Object> getUser(Request request) { //Returns a map with a loggedIn value. If the loggedIn value is true also contains a value with key "claims"
