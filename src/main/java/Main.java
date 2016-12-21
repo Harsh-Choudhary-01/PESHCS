@@ -194,7 +194,7 @@ public class Main {
                     stmt.executeUpdate("UPDATE classes SET className = '" + request.body() + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
                 }
                 catch (Exception e) {
-
+                    System.out.println("Exception on post: " + e);
                 }
                 finally {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}

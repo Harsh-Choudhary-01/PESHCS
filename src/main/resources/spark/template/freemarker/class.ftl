@@ -15,7 +15,7 @@
 		<nav>
 			<ul>
 				<li><a href="/">Home</a></li>
-				<li><a href="/class/classID" class="active">Class</a></li>
+				<li><a href="/class/${class.classID}" class="active">Class</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -127,9 +127,11 @@
 		$(document).ready(function() {
 			$('#updateName').submit(function(e) {
 				e.preventDefault();
-				var newName = $('#student-name').val();
+				var newName = $('#class-name').val();
+				console.log(newName);
 				$.ajax({
 					url: window.location.href,
+					method: 'POST' ,
 					data: newName,
 					success: function(data) {
 						$('.js-name').text(data);
