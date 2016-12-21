@@ -34,7 +34,7 @@ public class Main {
         get("/class/:classID" , (request, response) -> {
             Map<String, Object> attributes = new HashMap<>();
             String classID = request.params(":classID");
-            Map<String , Object> classInfo = null;
+            Map<String , Object> classInfo = new HashMap<>();
             Connection connection = null;
             Map<String , Object> user = getUser(request);
             if((Boolean) user.get("loggedIn")) {
@@ -46,8 +46,7 @@ public class Main {
                     ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , cardinality(invitedStudents) AS invitedLength FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                     while (rs.next())
                     {
-                        classInfo = new HashMap<>();
-                        classInfo.put("className" , rs.getString(0));
+                        classInfo.put("className" , rs.getString(1));
                         classInfo.put("assignLength" , rs.getInt("assignLength"));
                         classInfo.put("joinedLength" , rs.getInt("joinedLength"));
                         classInfo.put("invitedLength" , rs.getInt("invitedLength"));
@@ -62,7 +61,7 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            if(classInfo == null)
+            if(classInfo.size() != 5)
                 halt(404 , "Page Not Found");
             else
                 attributes.put("class" , classInfo);
