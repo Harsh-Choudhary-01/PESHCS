@@ -49,9 +49,10 @@ public class Main {
                         classInfo.put("assignLength" , rs.getInt("assignLength"));
                         classInfo.put("joinedLength" , rs.getInt("joinedLength"));
                         classInfo.put("invitedLength" , rs.getInt("invitedLength"));
-                        List<String[]> invitedStudents = new ArrayList<>();
+                        String[][] invitedStudents;
                         System.out.println(rs.getArray(5).getArray().toString());
-                        invitedStudents = (List<String[]>) rs.getArray(5).getArray();
+                        System.out.println("Col count: " + rs.getArray(5).getResultSet().getMetaData().getColumnCount());
+                        invitedStudents = (String[][]) rs.getArray(5).getArray();
                         classInfo.put("invitedStudents" , invitedStudents);
                         classInfo.put("classID" , classID);
                     }
