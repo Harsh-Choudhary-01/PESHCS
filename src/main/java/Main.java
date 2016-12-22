@@ -53,6 +53,10 @@ public class Main {
                         System.out.println(rs.getArray(5).getArray().toString());
                         System.out.println("Col count: " + rs.getArray(5).getResultSet().getMetaData().getColumnCount());
                         invitedStudents = (String[][]) rs.getArray(5).getArray();
+                        for(int i = 0; i< invitedStudents.length ; i++)
+                        {
+                            System.out.println(invitedStudents[i]);
+                        }
                         classInfo.put("invitedStudents" , invitedStudents);
                         classInfo.put("classID" , classID);
                     }
