@@ -140,12 +140,11 @@
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
-					data: sendData,
-					contentType: "application/json; charset=utf-8",
-					dataType: "json",
+					data: JSON.stringify(sendData),
 					success: function(data) {
-						if(data != 'no_change')
-							$('.js-name').text(data.name);
+						var dataObj = JSON.parse(data);
+						if(dataObj.name != 'no_change')
+							$('.js-name').text(dataObj.name);
 					}
 				});
 			});
@@ -159,12 +158,11 @@
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
-					data: sendData,
-					contentType: "application/json; charset=utf-8",
-					dataType: "json",
+					data: JSON.stringify(sendData),
 					success: function(data) {
-						if(data.name != 'no_change')
-							$('.js-inviteList').append("<li>" + data.name + " | Student Code: <code>" + data.code + "</code></li>");
+						var dataObj = JSON.parse(data);
+						if(dataObj.name != 'no_change')
+							$('.js-inviteList').append("<li>" + dataObj.name + " | Student Code: <code>" + dataObj.code + "</code></li>");
 					}
 				});
 			});
