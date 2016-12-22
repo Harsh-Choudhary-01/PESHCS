@@ -35,7 +35,7 @@
 				</section>
 				<section>
 					<h2>Update Name</h2>
-					<form method="post" action="#" id="updateName">
+					<form method="post" action="#" autocomplete="off" id="updateName">
 						<div class="row uniform">
 							<div class="12u$">
 								<input type="text" name="class-name" id="class-name" value="" placeholder="Class Name" />
@@ -51,12 +51,12 @@
 				</section>
 				<section>
 					<h2>Invited Students</h2>
-					<ul class="alt">
+					<ul class="alt js-inviteList">
 						<li>Student Name | Student Code: <code>q20cj2</code></li>
 						<li>Student Name | Student Code: <code>q20cj2</code></li>
 					</ul>
 					<h3>Invite New Student</h3>
-					<form method="post" action="#">
+					<form method="post" autocomplete="off" action="#" id="newStudent">
 						<div class="row uniform">
 							<div class="8u 12u$(medium)">
 								<input type="text" name="student-name" id="student-name" value="" placeholder="Student Name" />
@@ -127,15 +127,39 @@
 		$(document).ready(function() {
 			$('#updateName').submit(function(e) {
 				e.preventDefault();
-				var newName = $('#class-name').val();
-				console.log(newName);
+				var sendData = {
+					updating: 'class-name' ,
+					value : $('#class-name').val();
+				};
+				$('#class-name').val('');
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
-					data: newName,
+					data: sendData,
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
 					success: function(data) {
-						$('.js-name').text(data);
-						console.log(data);
+						if(data != 'no_change')
+							$('.js-name').text(data.name);
+					}
+				});
+			});
+			$('#newStudent').submit(function(e) {
+				e.preventDefault();
+				var sendData = {
+					updating: 'new-invite' ,
+					value : $('#student-name').val();
+				};
+				$('#student-name').val('');
+				$.ajax({
+					url: window.location.href,
+					method: 'POST' ,
+					data: sendData,
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					success: function(data) {
+						if(data != 'no_change')
+							$('.js-name').text(data);
 					}
 				});
 			});

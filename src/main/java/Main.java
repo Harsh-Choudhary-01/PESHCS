@@ -1,8 +1,6 @@
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Base64;
+import java.util.*;
+
 import com.auth0.jwt.JWTVerifier;
 
 import static spark.Spark.*;
@@ -12,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
+import freemarker.ext.beans.HashAdapter;
 import spark.Request;
 import spark.template.freemarker.FreeMarkerEngine;
 import spark.ModelAndView;
@@ -43,13 +42,17 @@ public class Main {
                 {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , cardinality(invitedStudents) AS invitedLength FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
+                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , (cardinality(invitedStudents) / 2) - 1 AS invitedLength, invitedStudents FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                     while (rs.next())
                     {
                         classInfo.put("className" , rs.getString(1));
                         classInfo.put("assignLength" , rs.getInt("assignLength"));
                         classInfo.put("joinedLength" , rs.getInt("joinedLength"));
                         classInfo.put("invitedLength" , rs.getInt("invitedLength"));
+                        List<String[]> invitedStudents = new ArrayList<>();
+                        System.out.println(rs.getArray(5).getArray().toString());
+                        invitedStudents = (List<String[]>) rs.getArray(5).getArray();
+                        classInfo.put("invitedStudents" , invitedStudents);
                         classInfo.put("classID" , classID);
                     }
                 }
@@ -61,7 +64,7 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            if(classInfo.size() != 5)
+            if(classInfo.size() != 6)
                 halt(404 , "Page Not Found");
             else
                 attributes.put("class" , classInfo);
@@ -165,7 +168,7 @@ public class Main {
                 {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS classes (classID text , className text, ownerID text , assignments text[] DEFAULT '{}', joinedStudents text[] DEFAULT '{}' , invitedStudents text[] DEFAULT '{}')");
+                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS classes (classID text , className text, ownerID text , assignments text[] DEFAULT '{}', joinedStudents text[] DEFAULT '{}' , invitedStudents text[][] DEFAULT '{{null , null}}')");
                     stmt.executeUpdate("INSERT INTO classes(classID , className, ownerID) VALUES ('" + classID + "' , 'New Class' , '" + claims.get("user_id") + "')");
                 }
                 catch (Exception e)
@@ -184,14 +187,24 @@ public class Main {
             Connection connection = null;
             String classID = request.params(":classID");
             Map<String, Object> user = getUser(request);
-            System.out.println(request.body());
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> jsonReq = new HashMap<>();
+            int updated = 0;
             if((Boolean) user.get("loggedIn")) {
                 user = (Map<String , Object>) user.get("claims");
                 try
                 {
+                    System.out.println(request.body());
+                    jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    stmt.executeUpdate("UPDATE classes SET className = '" + request.body() + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
+                    if(jsonReq.get("updating").equals("class-name"))
+                        updated = stmt.executeUpdate("UPDATE classes SET className = '" + jsonReq.get("value") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
+                    if(jsonReq.get("updating").equals("new-invite"))
+                    {
+                        String newID = new BigInteger(30, random).toString(32);
+                       // updated = stmt.executeUpdate("UPDATE classes SET invitedS")
+                    }
                 }
                 catch (Exception e) {
                     System.out.println("Exception on post: " + e);
@@ -200,7 +213,10 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            return  request.body();
+            if(updated == 0)
+                return "{\"name\" : \"no_change\"}";
+            else
+                return  request.body();
         });
     }
 
