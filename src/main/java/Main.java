@@ -55,7 +55,9 @@ public class Main {
                         invitedStudents = (String[][]) rs.getArray(5).getArray();
                         for(int i = 0; i< invitedStudents.length ; i++)
                         {
-                            System.out.println(invitedStudents[i]);
+                            String[] temp = invitedStudents[i];
+                            for(int j = 0; i< temp.length; i++)
+                                System.out.println(temp[j]);
                         }
                         classInfo.put("invitedStudents" , invitedStudents);
                         classInfo.put("classID" , classID);
