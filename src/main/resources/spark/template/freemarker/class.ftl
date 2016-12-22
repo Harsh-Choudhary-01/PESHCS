@@ -145,24 +145,27 @@
 						var dataObj = JSON.parse(data);
 						if(dataObj.name != 'no_change')
 							$('.js-name').text(dataObj.name);
+						else
+							return;
 					}
 				});
 			});
 			$('#newStudent').submit(function(e) {
 				e.preventDefault();
-				var sendData = {
-					updating: 'new_invite' ,
-					value : $('#student_name').val();
-				};
+				var stringData = '{"updating": "new_invite" , "value":"' + $('#student_name').val() + '"}';
+				console.log(stringData);
 				$('#student_name').val('');
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
-					data: JSON.stringify(sendData),
+					dataType: 'text json' ,
+					data: stringData ,
 					success: function(data) {
-						var dataObj = JSON.parse(data);
-						if(dataObj.name != 'no_change')
-							$('.js-inviteList').append("<li>" + dataObj.name + " | Student Code: <code>" + dataObj.code + "</code></li>");
+						//var dataObj = JSON.parse(data);
+						if(data.name != 'no_change')
+							$('.js-inviteList').append("<li>" + data.name + " | Student Code: <code>" + data.code + "</code></li>");
+						else
+							return;
 					}
 				});
 			});

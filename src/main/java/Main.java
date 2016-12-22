@@ -198,7 +198,7 @@ public class Main {
                     Statement stmt = connection.createStatement();
                     if(jsonReq.get("updating").equals("class-name"))
                         updated = stmt.executeUpdate("UPDATE classes SET className = '" + jsonReq.get("value") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
-                    if(jsonReq.get("updating").equals("new-invite"))
+                    if(jsonReq.get("updating").equals("new_invite"))
                     {
                         newID = new BigInteger(30, random).toString(32);
                         updated = stmt.executeUpdate("UPDATE classes SET invitedStudents = array_cat(invitedStudents , ARRAY['" + jsonReq.get("value") + "' , '" + newID + "'])");
