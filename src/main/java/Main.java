@@ -196,7 +196,7 @@ public class Main {
                     jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    if(jsonReq.get("updating").equals("class-name"))
+                    if(jsonReq.get("updating").equals("class_name"))
                         updated = stmt.executeUpdate("UPDATE classes SET className = '" + jsonReq.get("value") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
                     if(jsonReq.get("updating").equals("new_invite"))
                     {

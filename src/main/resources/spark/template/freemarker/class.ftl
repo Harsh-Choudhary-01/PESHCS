@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>${class.className}</title>
+		<title class="headTitle">${class.className}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--[if lte IE 8]><script src="../js/ie/html5shiv.js"></script><![endif]-->
@@ -55,7 +55,7 @@
 						<#if (class.invitedStudents?size > 1)>
 							<#list class.invitedStudents as invitedStudent>
 								<#if invitedStudent?counter != 1>
-									<li>invitedStudent[0] | Student Code: <code>invitedStudent[1]</code></li>
+									<li>${invitedStudent[0]} | Student Code: <code>${invitedStudent[1]}</code></li>
 								</#if>
 							</#list>
 						</#if>
@@ -130,30 +130,29 @@
 	<script src="../js/main.js"></script>
 	<script>
 		$(document).ready(function() {
-			// $('#updateName').submit(function(e) {
-			// 	e.preventDefault();
-			// 	var sendData = {
-			// 		updating: 'class_name' ,
-			// 		value : $('#class_name').val();
-			// 	};
-			// 	$('#class_name').val('');
-			// 	$.ajax({
-			// 		url: window.location.href,
-			// 		method: 'POST' ,
-			// 		data: JSON.stringify(sendData),
-			// 		success: function(data) {
-			// 			var dataObj = JSON.parse(data);
-			// 			if(dataObj.name != 'no_change')
-			// 				$('.js-name').text(dataObj.name);
-			// 			else
-			// 				return;
-			// 		}
-			// 	});
-			// });
+			$('#updateName').submit(function(e) {
+				e.preventDefault();
+				var stringData = '{"updating": "class_name" , "value":"' + $('#class_name').val() + '"}';
+				$('#class_name').val('');
+				$.ajax({
+					url: window.location.href,
+					method: 'POST' ,
+					dataType: 'text json' ,
+					data: stringData ,
+					success: function(data) {
+						if(dataObj.name != 'no_change')
+						{
+							$('.js-name').text(dataObj.name);
+							$('.headTitle').text(dataObj.name);
+						}
+						else
+							return;
+					}
+				});
+			});
 			$('#newStudent').submit(function(e) {
 				e.preventDefault();
 				var stringData = '{"updating": "new_invite" , "value":"' + $('#student_name').val() + '"}';
-				console.log(stringData);
 				$('#student_name').val('');
 				$.ajax({
 					url: window.location.href,
@@ -161,7 +160,6 @@
 					dataType: 'text json' ,
 					data: stringData ,
 					success: function(data) {
-						//var dataObj = JSON.parse(data);
 						if(data.name != 'no_change')
 							$('.js-inviteList').append("<li>" + data.name + " | Student Code: <code>" + data.code + "</code></li>");
 						else
