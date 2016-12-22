@@ -52,7 +52,7 @@
 				<section>
 					<h2>Invited Students</h2>
 					<ul class="alt js-inviteList">
-						<#if class.invitedStudents?size > 1>
+						<#if (class.invitedStudents?size > 1)>
 							<#list class.invitedStudents as invitedStudent>
 								<#if invitedStudent?counter != 1>
 									<li>invitedStudent[0] | Student Code: <code>invitedStudent[1]</code></li>
