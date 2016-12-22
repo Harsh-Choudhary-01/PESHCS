@@ -49,17 +49,7 @@ public class Main {
                         classInfo.put("assignLength" , rs.getInt("assignLength"));
                         classInfo.put("joinedLength" , rs.getInt("joinedLength"));
                         classInfo.put("invitedLength" , rs.getInt("invitedLength"));
-                        String[][] invitedStudents;
-                        System.out.println(rs.getArray(5).getArray().toString());
-                        System.out.println("Col count: " + rs.getArray(5).getResultSet().getMetaData().getColumnCount());
-                        invitedStudents = (String[][]) rs.getArray(5).getArray();
-                        for(int i = 0; i< invitedStudents.length ; i++)
-                        {
-                            String[] temp = invitedStudents[i];
-                            for(int j = 0; i< temp.length; i++)
-                                System.out.println(temp[j]);
-                        }
-                        classInfo.put("invitedStudents" , invitedStudents);
+                        classInfo.put("invitedStudents" , rs.getArray(5).getArray()); //Includes placeholder value for first array in array of arrays with value [null , null]
                         classInfo.put("classID" , classID);
                     }
                 }
@@ -196,6 +186,7 @@ public class Main {
             Map<String, Object> user = getUser(request);
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> jsonReq = new HashMap<>();
+            String newID = "";
             int updated = 0;
             if((Boolean) user.get("loggedIn")) {
                 user = (Map<String , Object>) user.get("claims");
@@ -209,8 +200,8 @@ public class Main {
                         updated = stmt.executeUpdate("UPDATE classes SET className = '" + jsonReq.get("value") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
                     if(jsonReq.get("updating").equals("new-invite"))
                     {
-                        String newID = new BigInteger(30, random).toString(32);
-                       // updated = stmt.executeUpdate("UPDATE classes SET invitedS")
+                        newID = new BigInteger(30, random).toString(32);
+                        updated = stmt.executeUpdate("UPDATE classes SET invitedStudents = array_cat(invitedStudents , ARRAY['" + jsonReq.get("value") + "' , '" + newID + "'])");
                     }
                 }
                 catch (Exception e) {
@@ -222,8 +213,12 @@ public class Main {
             }
             if(updated == 0)
                 return "{\"name\" : \"no_change\"}";
-            else
-                return  request.body();
+            else {
+                if(jsonReq.get("updating").equals("class-name"))
+                    return "{\"name\" : \"" + jsonReq.get("value") + "\"}";
+                else
+                    return "{\"name\" : \"" + jsonReq.get("value") + "\" , \"code\" : \"" + newID + "\"}";
+            }
         });
     }
 

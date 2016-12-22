@@ -52,8 +52,13 @@
 				<section>
 					<h2>Invited Students</h2>
 					<ul class="alt js-inviteList">
-						<li>Student Name | Student Code: <code>q20cj2</code></li>
-						<li>Student Name | Student Code: <code>q20cj2</code></li>
+						<#if class.invitedStudents?size > 1>
+							<#list class.invitedStudents as invitedStudent>
+								<#if invitedStudent?counter != 1>
+									<li>invitedStudent[0] | Student Code: <code>invitedStudent[1]</code></li>
+								</#if>
+							</#list>
+						</#if>
 					</ul>
 					<h3>Invite New Student</h3>
 					<form method="post" autocomplete="off" action="#" id="newStudent">
@@ -158,8 +163,8 @@
 					contentType: "application/json; charset=utf-8",
 					dataType: "json",
 					success: function(data) {
-						if(data != 'no_change')
-							$('.js-name').text(data);
+						if(data.name != 'no_change')
+							$('.js-inviteList').append("<li>" + data.name + " | Student Code: <code>" + data.code + "</code></li>");
 					}
 				});
 			});
