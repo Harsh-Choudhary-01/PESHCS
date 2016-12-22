@@ -67,6 +67,7 @@ public class Main {
                     }
                     if (validClass)
                     {
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
                         stmt.executeQuery("SELECT studentName , studentEmail FROM students WHERE classID = '" + classID + "'");
                         while (rs.next())
                         {
