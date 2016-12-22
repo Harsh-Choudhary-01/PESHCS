@@ -52,13 +52,9 @@
 				<section>
 					<h2>Invited Students</h2>
 					<ul class="alt js-inviteList">
-						<#if (class.invitedStudents?size > 1)>
-							<#list class.invitedStudents as invitedStudent>
-								<#if invitedStudent?counter != 1>
-									<li>${invitedStudent[0]} | Student Code: <code>${invitedStudent[1]}</code></li>
-								</#if>
-							</#list>
-						</#if>
+						<#list class.invitedStudents as invitedStudent>
+								<li>${invitedStudent[0]} | Student Code: <code>${invitedStudent[1]}</code></li>
+						</#list>
 					</ul>
 					<h3>Invite New Student</h3>
 					<form method="post" autocomplete="off" action="#" id="newStudent">
@@ -78,8 +74,9 @@
 				<section>
 					<h2>Joined Students</h2>
 					<ul class="alt">
-						<li>Student Name | Student Email: user@gmail.com</li>
-						<li>Student Name | Student Email: user@gmail.com</li>
+						<#list class.joinedStudents as joinedStudent>
+							<li>${joinedStudent[0]} | Student Email: <code>${joinedStudent[1]}</code></li>
+						</#list>
 					</ul>
 				</section>
 				<section>

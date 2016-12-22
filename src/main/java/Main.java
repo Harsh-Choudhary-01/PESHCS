@@ -36,22 +36,48 @@ public class Main {
             Map<String , Object> classInfo = new HashMap<>();
             Connection connection = null;
             Map<String , Object> user = getUser(request);
+            String[] joinedStudents = new String[0];
+            boolean validClass = false;
+            List<String[]> invitedStudents = new ArrayList<>();
+            List<String[]> joinedStudentsList = new ArrayList<>();
             if((Boolean) user.get("loggedIn")) {
                 user = (Map<String, Object>) user.get("claims");
                 try
                 {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , (cardinality(invitedStudents) / 2) - 1 AS invitedLength, invitedStudents FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
+                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , (cardinality(invitedStudents) / 2) - 1 AS invitedLength, invitedStudents , joinedStudents FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                     while (rs.next())
                     {
-                        classInfo.put("className" , rs.getString(1));
-                        classInfo.put("assignLength" , rs.getInt("assignLength"));
-                        classInfo.put("joinedLength" , rs.getInt("joinedLength"));
-                        classInfo.put("invitedLength" , rs.getInt("invitedLength"));
-                        classInfo.put("invitedStudents" , rs.getArray(5).getArray()); //Includes placeholder value for first array in array of arrays with value [null , null]
-                        classInfo.put("classID" , classID);
+                        validClass = true;
+                        classInfo.put("className", rs.getString(1));
+                        classInfo.put("assignLength", rs.getInt("assignLength"));
+                        joinedStudents = (String[]) rs.getArray(6).getArray();
+                        String[][] tempInvitedStudents = (String[][]) rs.getArray(5).getArray();
+                        for (int i = 1; i < tempInvitedStudents.length; i++) //Starts from 1 to avoid placeholder null value
+                        {
+                            boolean studentJoined = false;
+                            for (int j = 0; j < joinedStudents.length; j++) {
+                                if (joinedStudents[j].equals(tempInvitedStudents[i][1]))
+                                    studentJoined = true;
+                            }
+                            if (!studentJoined)
+                                invitedStudents.add(tempInvitedStudents[i]);
+                        }
                     }
+                    if (validClass)
+                    {
+                        stmt.executeQuery("SELECT studentName , studentEmail FROM students WHERE classID = '" + classID + "'");
+                        while (rs.next())
+                        {
+                            joinedStudentsList.add(new String[]{rs.getString("studentName") , rs.getString("studentEmail")});
+                        }
+                    }
+                    classInfo.put("invitedStudents" , invitedStudents);
+                    classInfo.put("invitedLength" , invitedStudents.size());
+                    classInfo.put("joinedLength", joinedStudentsList.size());
+                    classInfo.put("joinedStudents" , joinedStudentsList);
+                    classInfo.put("classID" , classID);
                 }
                 catch (Exception e)
                 {
@@ -61,7 +87,7 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            if(classInfo.size() != 6)
+            if(classInfo.size() != 7)
                 halt(404 , "Page Not Found");
             else
                 attributes.put("class" , classInfo);
