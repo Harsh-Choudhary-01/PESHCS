@@ -140,10 +140,10 @@
 					dataType: 'text json' ,
 					data: stringData ,
 					success: function(data) {
-						if(dataObj.name != 'no_change')
+						if(data.name != 'no_change')
 						{
-							$('.js-name').text(dataObj.name);
-							$('.headTitle').text(dataObj.name);
+							$('.js-name').text(data.name);
+							$('.headTitle').text(data.name);
 						}
 						else
 							return;

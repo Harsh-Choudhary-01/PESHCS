@@ -201,7 +201,7 @@ public class Main {
                     if(jsonReq.get("updating").equals("new_invite"))
                     {
                         newID = new BigInteger(30, random).toString(32);
-                        updated = stmt.executeUpdate("UPDATE classes SET invitedStudents = array_cat(invitedStudents , ARRAY['" + jsonReq.get("value") + "' , '" + newID + "'])");
+                        updated = stmt.executeUpdate("UPDATE classes SET invitedStudents = array_cat(invitedStudents , ARRAY['" + jsonReq.get("value") + "' , '" + newID + "']) WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
                     }
                 }
                 catch (Exception e) {
