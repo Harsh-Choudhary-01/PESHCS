@@ -130,26 +130,26 @@
 	<script src="../js/main.js"></script>
 	<script>
 		$(document).ready(function() {
-			$('#updateName').submit(function(e) {
-				e.preventDefault();
-				var sendData = {
-					updating: 'class_name' ,
-					value : $('#class_name').val();
-				};
-				$('#class_name').val('');
-				$.ajax({
-					url: window.location.href,
-					method: 'POST' ,
-					data: JSON.stringify(sendData),
-					success: function(data) {
-						var dataObj = JSON.parse(data);
-						if(dataObj.name != 'no_change')
-							$('.js-name').text(dataObj.name);
-						else
-							return;
-					}
-				});
-			});
+			// $('#updateName').submit(function(e) {
+			// 	e.preventDefault();
+			// 	var sendData = {
+			// 		updating: 'class_name' ,
+			// 		value : $('#class_name').val();
+			// 	};
+			// 	$('#class_name').val('');
+			// 	$.ajax({
+			// 		url: window.location.href,
+			// 		method: 'POST' ,
+			// 		data: JSON.stringify(sendData),
+			// 		success: function(data) {
+			// 			var dataObj = JSON.parse(data);
+			// 			if(dataObj.name != 'no_change')
+			// 				$('.js-name').text(dataObj.name);
+			// 			else
+			// 				return;
+			// 		}
+			// 	});
+			// });
 			$('#newStudent').submit(function(e) {
 				e.preventDefault();
 				var stringData = '{"updating": "new_invite" , "value":"' + $('#student_name').val() + '"}';
