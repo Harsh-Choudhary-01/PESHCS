@@ -114,6 +114,7 @@
 							<#if role == "student">
 								<section class="wrapper">
 									<div class="inner">
+										<h2>Join a Class</h2>
 										<form method="post" autocomplete="off" action="#" id="joinClass">
 											<div class="row uniform">
 												<div class="8u 12u$(medium)">
@@ -168,6 +169,25 @@
 					window.location.href="#role";
 		      $(document).ready(function()
 		      {
+		      	$('#joinClass').submit(function(e) {
+					e.preventDefault();
+					var stringData = '{"updating": "join_class" , "student_name":"' + $('#student_name').val() + '" , "class_id" : "' + $('#class_id').val() + '" , "student_id" : "' + $('#student_id').val() + '"}';
+					$.ajax({
+						url: window.location.href,
+						method: 'POST' ,
+						dataType: 'text json' ,
+						data: stringData ,
+						success: function(data) {
+							if(data.status != 'fail')
+								window.location.reload(true);
+							else
+							{
+								alert("Error submitting form. Please check to make sure access code is correct");
+								return;
+							}
+						}
+					});
+				});
 		      	if("${target}" != "none")
 		      	{
 		      		setTimeout(function() {

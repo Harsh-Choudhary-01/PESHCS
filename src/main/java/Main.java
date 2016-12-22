@@ -220,6 +220,46 @@ public class Main {
                     return "{\"name\" : \"" + jsonReq.get("value") + "\" , \"code\" : \"" + newID + "\"}";
             }
         });
+
+        post("/" , (request, response) -> {
+            Map<String, Object> user = getUser(request);
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> jsonReq = new HashMap<>();
+            Connection connection = null;
+            int updated = 0;
+            if((Boolean) user.get("loggedIn"))
+            {
+                user = (Map<String , Object>) user.get("claims"); //TODO: check if student has already joined any classes and also rmbr to check importance of classes metadata in auth0 and if we need that
+                try
+                {
+                    jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    if(jsonReq.get("updating").equals("join_class"))
+                    {
+                        ResultSet rs = stmt.executeQuery("SELECT a.* FROM classes a JOIN LATERAL generate_subscripts(a.invitedStudents , 1) i on a.invitedStudents[i:i] = '{{" + jsonReq.get("student_name") + " , " + jsonReq.get("student_id") + "}}' WHERE classID = '" + jsonReq.get("class_id") + "'");
+                        while(rs.next())
+                        {
+                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
+                            stmt.executeUpdate("INSERT INTO students(userID , classID , studentCode , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + jsonReq.get("student_id") + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
+                            updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + jsonReq.get("student_id") + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
+                            break;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Exception on post index: " + e);
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            if(updated == 0)
+                return "{\"status\" : \"fail\"}";
+            else
+                return "{\"status\" : \"success\"}";
+        });
     }
 
     private static Map<String, Object> getUser(Request request) { //Returns a map with a loggedIn value. If the loggedIn value is true also contains a value with key "claims"
