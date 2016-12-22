@@ -38,7 +38,7 @@
 					<form method="post" action="#" autocomplete="off" id="updateName">
 						<div class="row uniform">
 							<div class="12u$">
-								<input type="text" name="class-name" id="class-name" value="" placeholder="Class Name" />
+								<input type="text" name="class-name" id="class_name" value="" placeholder="Class Name" />
 							</div>
 							<div class="12u$">
 								<ul class="actions">
@@ -64,7 +64,7 @@
 					<form method="post" autocomplete="off" action="#" id="newStudent">
 						<div class="row uniform">
 							<div class="8u 12u$(medium)">
-								<input type="text" name="student-name" id="student-name" value="" placeholder="Student Name" />
+								<input type="text" name="student-name" id="student_name" value="" placeholder="Student Name" />
 							</div>
 							<div class="4u 12u$(medium)">
 								<ul class="actions">
@@ -133,10 +133,10 @@
 			$('#updateName').submit(function(e) {
 				e.preventDefault();
 				var sendData = {
-					updating: 'class-name' ,
-					value : $('#class-name').val();
+					updating: 'class_name' ,
+					value : $('#class_name').val();
 				};
-				$('#class-name').val('');
+				$('#class_name').val('');
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
@@ -151,10 +151,10 @@
 			$('#newStudent').submit(function(e) {
 				e.preventDefault();
 				var sendData = {
-					updating: 'new-invite' ,
-					value : $('#student-name').val();
+					updating: 'new_invite' ,
+					value : $('#student_name').val();
 				};
-				$('#student-name').val('');
+				$('#student_name').val('');
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
