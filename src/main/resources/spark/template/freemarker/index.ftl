@@ -123,6 +123,26 @@
 										</div>
 									</section>
 									<section>
+										<form method="post" autocomplete="off" action="#" id="joinClass">
+											<div class="row uniform">
+												<div class="8u 12u$(medium)">
+													<input type="text" name="student_name" id="student_name" value="" placeholder="Student Name" />
+												</div>
+												<div class="4u 12u$(medium)">
+													<input type="text" name="class_id" id="class_id" value="" placeholder="Class Code" />
+												</div>
+												<div class="4u 12u$(medium)">
+													<input type="text" name="student_id" id="student_id" value="" placeholder="Student Code" />
+												</div>
+												<div class="4u 12u$(medium)">
+													<ul class="actions">
+														<li><input type="submit" value="Join Class" class="special"/></li>
+													</ul>
+												</div>
+											</div>
+										</form>
+									</section>
+									<section>
 										<a href="#" class="image"><img src="images/pic03.jpg" alt="" data-position="25% 25%" /></a>
 										<div class="content">
 											<div class="inner">
