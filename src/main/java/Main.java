@@ -122,7 +122,10 @@ public class Main {
                                 classes.add(classObject);
                             }
                             attributes.put("classes" , classes);
-                            System.out.println("classes is: " + classes);
+                        }
+                        else if(((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("student"))
+                        {
+                            
                         }
                     }
                     catch (Exception e)
@@ -174,19 +177,6 @@ public class Main {
             Map<String, Object> user = getUser(request);
             if((Boolean) user.get("loggedIn")) {
                 Map<String, Object> claims = (Map<String, Object>) user.get("claims");
-                HttpResponse<JsonNode> appMetadata = Unirest.get("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id") + "?fields=app_metadata")
-                        .header("authorization", "Bearer " + managementToken)
-                        .asJson();
-                String classArray;
-                if(appMetadata.getBody().getObject().getJSONObject("app_metadata").has("classes"))
-                    classArray = appMetadata.getBody().getObject().getJSONObject("app_metadata").getJSONArray("classes").put(classID).toString();
-                else
-                    classArray = "[\"" + classID + "\"]";
-                HttpResponse<String> res = Unirest.patch("https://" + clientDomain + "/api/v2/users/" + claims.get("user_id"))
-                        .header("authorization", "Bearer " + managementToken)
-                        .header("content-type", "application/json")
-                        .body("{\"app_metadata\" : { \"classes\" : " + classArray + "} }")
-                        .asString();
                 Connection connection = null;
                 try
                 {
