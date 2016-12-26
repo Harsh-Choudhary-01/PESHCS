@@ -87,7 +87,7 @@
 		});
 		function createAssignment(isPublish)
 		{
-			var code = encodeURIComponent(editor.getValue());
+			var code = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 			var stringData = '{"name" : "' + $("assignment_name").val() + '" , "description" : "' + $("assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + code + '"}';
 			$.ajax({
 				url: "/class/${class.classID}/new",
