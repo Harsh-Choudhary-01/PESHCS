@@ -87,7 +87,8 @@
 		});
 		function createAssignment(isPublish)
 		{
-			var stringData = '{"name" : "' + $("assignment_name").val() + '" , "description" : "' + $("assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + editor.getValue() + '"}';
+			var code = encodeURIComponent(editor.getValue());
+			var stringData = '{"name" : "' + $("assignment_name").val() + '" , "description" : "' + $("assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + code + '"}';
 			$.ajax({
 				url: "/class/${class.classID}/new",
 				method: 'POST' ,
