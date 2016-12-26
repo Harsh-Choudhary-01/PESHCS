@@ -22,8 +22,8 @@
 		<nav>
 			<ul>
 				<li><a href="/">Home</a></li>
-				<li><a href="/class/classID">Class</a></li>
-				<li><a href="/class/classID/new" class="active">New Assignment</a></li>
+				<li><a href="/class/${class.classID}">Class</a></li>
+				<li><a href="/class/${class.classID}/new" class="active">New Assignment</a></li>
 			</ul>
 		</nav>
 	</header>

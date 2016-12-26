@@ -107,8 +107,12 @@ public class Main {
             Map<String , Object> attributes = new HashMap<>();
             String classID = request.params(":classID");
             String assignmentID = request.params(":assignmentID");
-            if(assignmentID.equals("new"))
-                return new ModelAndView(attributes , "newAssignment.ftl");
+            if(assignmentID.equals("new")) {
+                Map<String , Object> classInfo = new HashMap<>();
+                classInfo.put("classID" , classID);
+                attributes.put("class" , classInfo);
+                return new ModelAndView(attributes, "newAssignment.ftl");
+            }
             else
             {
                 return new ModelAndView(attributes , "assignment.ftl");
