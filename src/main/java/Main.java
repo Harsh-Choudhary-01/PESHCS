@@ -74,7 +74,7 @@ public class Main {
                         {
                             joinedStudentsList.add(new String[]{rs.getString("studentName") , rs.getString("studentEmail")});
                         }
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID)");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID text)");
                         rs = stmt.executeQuery("SELECT name , description , published FROM assignments WHERE ownerID = '" + user.get("user_id") + "'");
                         while(rs.next())
                         {
@@ -159,7 +159,7 @@ public class Main {
                             else {
                                 attributes.put("joinedClass" , true);
                                 ArrayList<Object> assignments = new ArrayList<>();
-                                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID)");
+                                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID text)");
                                 rs = stmt.executeQuery("SELECT name , description , assignmentID FROM assignments WHERE classID = '" + classID + "' AND published = TRUE");
                                 while (rs.next()) {
                                     assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
@@ -296,7 +296,7 @@ public class Main {
                     updated = stmt.executeUpdate("UPDATE classes SET assignments = array_cat(assignments , '{" + assignmentID + "}') WHERE classID = '" + classID + "' AND ownerID = '" + user.get("user_id") + "'");
                     if(updated != 0)
                     {
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID)");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID text)");
                         updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , '" +
                                 jsonReq.get("code") + "' , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
                     }
