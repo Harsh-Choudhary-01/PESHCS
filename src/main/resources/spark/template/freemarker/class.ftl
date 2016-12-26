@@ -82,38 +82,28 @@
 				<section>
 					<h2>Assignments</h2>
 					<div class="table-wrapper">
-						<table>
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Description</th>
-									<th>Published</th>
-									<th>Number Completed</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>Assignment Name</td>
-									<td>Description of Assignment</td>
-									<td>Yes</td>
-									<td>0</td>
-								</tr>
-								<tr>
-									<td>Assignment Name</td>
-									<td>Description of Assignment</td>
-									<td>Yes</td>
-									<td>0</td>
-								</tr>
-								<tr>
-									<td>Assignment Name</td>
-									<td>Description of Assignment</td>
-									<td>Yes</td>
-									<td>0</td>
-								</tr>
-							</tbody>
-						</table>
+						<#if class.assignments?has_content>
+							<table>
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Description</th>
+										<th>Published</th>
+									</tr>
+								</thead>
+								<tbody>
+									<#list class.assignments as assignment>
+										<tr>
+											<td>${assignment[0]}</td>
+											<td>${assignment[1]}</td>
+											<td>${assignment[2]}</td>
+										</tr>
+									</#list>
+								</tbody>
+							</table>
+						</#if>
 					</div>
-					<a href="#" class="button special">Create New Assignment</a>
+					<a href="/${class.classID}/new" class="button special">Create New Assignment</a>
 				</section>
 			</div>
 		</section>	

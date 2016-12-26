@@ -112,29 +112,47 @@
 								</#if>
 							</section>
 							<#if role == "student">
-								<section class="wrapper">
-									<div class="inner">
-										<h2>Join a Class</h2>
-										<form method="post" autocomplete="off" action="#" id="joinClass">
-											<div class="row uniform">
-												<div class="8u 12u$(medium)">
-													<input type="text" name="student_name" id="student_name" value="" placeholder="Student Name" />
+								<#if !joinedClass>
+									<section class="wrapper" id="one">
+										<div class="inner">
+											<h2>Join a Class</h2>
+											<form method="post" autocomplete="off" action="#" id="joinClass">
+												<div class="row uniform">
+													<div class="8u 12u$(medium)">
+														<input type="text" name="student_name" id="student_name" value="" placeholder="Student Name" />
+													</div>
+													<div class="4u 12u$(medium)">
+														<input type="text" name="class_id" id="class_id" value="" placeholder="Class Code" />
+													</div>
+													<div class="4u 12u$(medium)">
+														<input type="text" name="student_id" id="student_id" value="" placeholder="Student Code" />
+													</div>
+													<div class="4u 12u$(medium)">
+														<ul class="actions">
+															<li><input type="submit" value="Join Class" class="special"/></li>
+														</ul>
+													</div>
 												</div>
-												<div class="4u 12u$(medium)">
-													<input type="text" name="class_id" id="class_id" value="" placeholder="Class Code" />
-												</div>
-												<div class="4u 12u$(medium)">
-													<input type="text" name="student_id" id="student_id" value="" placeholder="Student Code" />
-												</div>
-												<div class="4u 12u$(medium)">
-													<ul class="actions">
-														<li><input type="submit" value="Join Class" class="special"/></li>
-													</ul>
-												</div>
-											</div>
-										</form>
-									</div>
-								</section>
+											</form>
+										</div>
+									</section>
+								<#else>
+									<section id="one" class="wrapper style2 spotlights">
+										<#if assignments?has_content>
+											<#list assignments as assignment>
+												<section>
+													<div class="content">
+														<div class="inner">
+															<h2>${assignment[0]}</h2>
+															<p>${assignment[1]</p>
+															<li><a href="/assignment/${assignment[2]}" class="button special">Start</a></li>
+														</div>
+													</div>
+												</section>
+											</#list>
+										</#if>
+									</section>
+								</#if>
 							</#if>
 						</#if>
 					</#if>

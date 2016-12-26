@@ -67,12 +67,19 @@ public class Main {
                     }
                     if (validClass)
                     {
+                        ArrayList<Object> assignments = new ArrayList<>();
                         stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
                         rs = stmt.executeQuery("SELECT studentName , studentEmail FROM students WHERE classID = '" + classID + "'");
                         while (rs.next())
                         {
                             joinedStudentsList.add(new String[]{rs.getString("studentName") , rs.getString("studentEmail")});
                         }
+                        rs = stmt.executeQuery("SELECT name , description , published FROM assignments WHERE ownerID = '" + user.get("user_id") + "'");
+                        while(rs.next())
+                        {
+                            assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
+                        }
+                        classInfo.put("assignments" , assignments);
                     }
                     classInfo.put("invitedStudents" , invitedStudents);
                     classInfo.put("invitedLength" , invitedStudents.size());
@@ -94,6 +101,18 @@ public class Main {
                 attributes.put("class" , classInfo);
             return  new ModelAndView(attributes , "class.ftl");
         }, new FreeMarkerEngine());
+
+        get("/class/:classID/:assignmentID" , (request , response) -> {
+            Map<String , Object> attributes = new HashMap<>();
+            String classID = request.params(":classID");
+            String assignmentID = request.params(":assignmentID");
+            if(assignmentID.equals("new"))
+                return new ModelAndView(attributes , "newAssignment.ftl");
+            else
+            {
+                return new ModelAndView(attributes , "assignment.ftl");
+            }
+        } , new FreeMarkerEngine());
 
         get("/", (request, response) -> {
             Map<String, Object> attributes = new HashMap<>();
@@ -125,7 +144,27 @@ public class Main {
                         }
                         else if(((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("student"))
                         {
-                            
+                            connection = DatabaseUrl.extract().getConnection();
+                            Statement stmt = connection.createStatement();
+                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
+                            ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + user.get("user_id") + "'");
+                            String classID = "";
+                            while(rs.next())
+                            {
+                                classID = rs.getString(1);
+                            }
+                            if(classID.equals(""))
+                                attributes.put("joinedClass" , false);
+                            else {
+                                attributes.put("joinedClass" , true);
+                                ArrayList<Object> assignments = new ArrayList<>();
+                                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID)");
+                                rs = stmt.executeQuery("SELECT name , description , assignmentID FROM assignments WHERE classID = '" + classID + "' AND published = TRUE");
+                                while (rs.next()) {
+                                    assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
+                                }
+                                attributes.put("assignments" , assignments);
+                            }
                         }
                     }
                     catch (Exception e)
@@ -236,6 +275,43 @@ public class Main {
                 else
                     return "{\"name\" : \"" + jsonReq.get("value") + "\" , \"code\" : \"" + newID + "\"}";
             }
+        });
+
+        post("/class/:classID/new" , (request , response) -> {
+            String classID = request.params("classID");
+            String assignmentID = new BigInteger(30 , random).toString(32);
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String , Object> jsonReq = new HashMap<>();
+            Connection connection = null;
+            int updated = 0;
+            Map<String , Object> user = getUser(request);
+            if((Boolean) user.get("loggedIn"))
+            {
+                user = (Map<String , Object>) user.get("claims");
+                try {
+                    jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    updated = stmt.executeUpdate("UPDATE classes SET assignments = array_cat(assignments , '{" + assignmentID + "}') WHERE classID = '" + classID + "' AND ownerID = '" + user.get("user_id") + "'");
+                    if(updated != 0)
+                    {
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID)");
+                        updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , '" +
+                                jsonReq.get("code") + "' , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
+                    }
+                }
+                catch(Exception e)
+                {
+                    System.out.println("Exception while creating new assignment: " + e);
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+           if(updated == 0)
+               return "{\"id\" : \"no_change\"}";
+           else
+               return "{\"id\" : \"" + assignmentID + "\"}";
         });
 
         post("/" , (request, response) -> {
