@@ -88,7 +88,7 @@
 		function createAssignment(isPublish)
 		{
 			var code = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
-			var stringData = '{"name" : "' + $("assignment_name").val() + '" , "description" : "' + $("assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + code + '"}';
+			var stringData = '{"name" : "' + $("#assignment_name").val() + '" , "description" : "' + $("#assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + code + '"}';
 			$.ajax({
 				url: "/class/${class.classID}/new",
 				method: 'POST' ,
@@ -97,7 +97,7 @@
 				success: function(data) {
 					if(data.id != 'no_change')
 					{
-						window.location.href = "/assignment/" + data.id;
+						window.location.href = "/class/${class.classID}/" + data.id;
 					}
 					else
 						return;

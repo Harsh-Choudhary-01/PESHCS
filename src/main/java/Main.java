@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
+import com.sun.glass.ui.EventLoop;
 import freemarker.ext.beans.HashAdapter;
 import spark.Request;
 import spark.template.freemarker.FreeMarkerEngine;
@@ -115,6 +116,23 @@ public class Main {
             }
             else
             {
+                Map<String , Object> user = getUser(request);
+                if((Boolean) user.get("loggedIn")) {
+                    user = (Map<String, Object>) user.get("claims");
+                    Connection connection = null;
+                    try {
+                        connection = DatabaseUrl.extract().getConnection();
+                        Statement stmt = connection.createStatement();
+                        //stmt.executeQuery("SELECT name , description , code , published FROM assignments WHERE ")
+                        // name, description, code, published
+                    }
+                    catch (Exception e) {
+
+                    }
+                    finally {
+                        if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                    }
+                }
                 return new ModelAndView(attributes , "assignment.ftl");
             }
         } , new FreeMarkerEngine());
@@ -163,8 +181,8 @@ public class Main {
                             else {
                                 attributes.put("joinedClass" , true);
                                 ArrayList<Object> assignments = new ArrayList<>();
-                                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID text)");
-                                rs = stmt.executeQuery("SELECT name , description , assignmentID FROM assignments WHERE classID = '" + classID + "' AND published = TRUE");
+                                stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
+                                rs = stmt.executeQuery("SELECT name , description , assignmentID FROM assignments WHERE classID = '" + classID + "' AND published = 'true'");
                                 while (rs.next()) {
                                     assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
                                 }
@@ -300,7 +318,7 @@ public class Main {
                     updated = stmt.executeUpdate("UPDATE classes SET assignments = array_cat(assignments , '{" + assignmentID + "}') WHERE classID = '" + classID + "' AND ownerID = '" + user.get("user_id") + "'");
                     if(updated != 0)
                     {
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published boolean , classID text , ownerID text , assignmentID text)");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
                         updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , '" +
                                 jsonReq.get("code") + "' , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
                     }
