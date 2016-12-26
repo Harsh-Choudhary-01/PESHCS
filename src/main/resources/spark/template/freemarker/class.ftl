@@ -103,7 +103,7 @@
 							</table>
 						</#if>
 					</div>
-					<a href="/${class.classID}/new" class="button special">Create New Assignment</a>
+					<a href="/class/${class.classID}/new" class="button special">Create New Assignment</a>
 				</section>
 			</div>
 		</section>	

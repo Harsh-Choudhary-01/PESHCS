@@ -4,8 +4,8 @@
 	<title>Create New Assignment</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<!--[if lte IE 8]><script src="js/ie/html5shiv.js"></script><![endif]-->
-	<link rel="stylesheet" href="css/main.css" />
+	<!--[if lte IE 8]><script src="../../.js/ie/html5shiv.js"></script><![endif]-->
+	<link rel="stylesheet" href="../../css/main.css" />
 	<style type="text/css" media="screen">
 		#editor { 
 			position: absolute;
@@ -13,8 +13,8 @@
 			width: 100%;
 		}
 	</style>
-	<!--[if lte IE 9]><link rel="stylesheet" href="css/ie9.css" /><![endif]-->
-	<!--[if lte IE 8]><link rel="stylesheet" href="css/ie8.css" /><![endif]-->
+	<!--[if lte IE 9]><link rel="stylesheet" href="../../css/ie9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="../../css/ie8.css" /><![endif]-->
 </head>
 <body>
 	<header id="header">
@@ -58,11 +58,11 @@
 			</div>
 		</section>
 	</div>
-	<script src="js/jquery.min.js"></script>
-	<script src="ace/src-min/ace.js" type="text/javascript" charset="utf-8"></script>
-	<script src="ace/src-min/mode-java.js" type="text/javascript" charset="utf-8"></script>
-	<script src="ace/src-min/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
-	<script src="ace/src-min/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/jquery.min.js"></script>
+	<script src="../../ace/src-min/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../ace/src-min/mode-java.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../ace/src-min/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../ace/src-min/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		ace.require("ace/ext/language_tools");
 		var editor = ace.edit("editor");
