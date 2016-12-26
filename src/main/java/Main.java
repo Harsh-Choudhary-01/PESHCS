@@ -165,6 +165,7 @@ public class Main {
                         else if(((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("student"))
                         {
                             connection = DatabaseUrl.extract().getConnection();
+                            user = (Map<String, Object>) user.get("claims");
                             Statement stmt = connection.createStatement();
                             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
                             ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + user.get("user_id") + "'");
@@ -172,10 +173,12 @@ public class Main {
                             while(rs.next())
                             {
                                 classID = rs.getString(1);
+                                System.out.println("did rs");
                             }
                             if(classID.equals(""))
                                 attributes.put("joinedClass" , false);
                             else {
+                                System.out.println("joinedClass is true");
                                 attributes.put("joinedClass" , true);
                                 ArrayList<Object> assignments = new ArrayList<>();
                                 stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");

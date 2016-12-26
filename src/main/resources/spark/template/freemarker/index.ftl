@@ -175,6 +175,7 @@
 			<script src="js/main.js"></script>
 			<script src="https://cdn.auth0.com/js/lock/10.0/lock.min.js"></script>
 		    <script>
+		    	console.log(${joinedClass});
 				function simClick(id)
 				{
 					var elem = document.getElementById(id);
