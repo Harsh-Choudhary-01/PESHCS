@@ -144,7 +144,7 @@
 													<div class="content">
 														<div class="inner">
 															<h2>${assignment[0]}</h2>
-															<p>${assignment[1]</p>
+															<p>${assignment[1]}</p>
 															<li><a href="/assignment/${assignment[2]}" class="button special">Start</a></li>
 														</div>
 													</div>
