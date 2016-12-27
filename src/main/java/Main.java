@@ -4,7 +4,6 @@ import java.util.*;
 import com.auth0.jwt.JWTVerifier;
 
 import static spark.Spark.*;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
@@ -21,11 +20,13 @@ public class Main {
     private static String clientId = System.getenv("AUTH0_CLIENT_ID");
     private static String clientDomain = System.getenv("AUTH0_DOMAIN");
     private static String managementToken = System.getenv("AUTH0_MANAGE");
+    public static final String X_FORWARDED_PROTO = "x-forwarded-proto";
     public static void main(String[] args) {
 
         port(Integer.valueOf(System.getenv("PORT")));
         staticFileLocation("/spark/template/freemarker");
         SecureRandom random = new SecureRandom();
+
         get("/hello", (request, response) -> "Hello World");
 
         get("/class/:classID" , (request, response) -> {
@@ -101,6 +102,35 @@ public class Main {
             return  new ModelAndView(attributes , "class.ftl");
         }, new FreeMarkerEngine());
 
+        get("/assignment/:assignmentID" , (request , response) -> {
+            Map<String , Object> attributes = new HashMap<>();
+            String assignmentID = request.params(":assignmentID");
+            Map<String , Object> user = getUser(request);
+            Connection connection = null;
+            if((Boolean) user.get("loggedIn"))
+            {
+                user = (Map<String , Object>) user.get("claims");
+                Map<String , Object> metadata = getDynamicUser((String)user.get("user_id"));
+                attributes.put("metadata" , metadata);
+                try {
+                    if (((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("teacher")) {
+
+                    }
+                    else {
+
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            return new ModelAndView(attributes , "editor.ftl");
+        } , new FreeMarkerEngine());
+
         get("/class/:classID/:assignmentID" , (request , response) -> {
             Map<String , Object> attributes = new HashMap<>();
             String classID = request.params(":classID");
@@ -120,8 +150,16 @@ public class Main {
                     try {
                         connection = DatabaseUrl.extract().getConnection();
                         Statement stmt = connection.createStatement();
-                        //stmt.executeQuery("SELECT name , description , code , published FROM assignments WHERE ")
-                        // name, description, code, published
+                        ResultSet rs = stmt.executeQuery("SELECT name , description , code , published, assignmentID FROM assignments WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                        while (rs.next())
+                        {
+                            attributes.put("name" , rs.getString(1));
+                            attributes.put("description" , rs.getString(2));
+                            attributes.put("code" , rs.getString(3));
+                            attributes.put("published" , rs.getString(4));
+                            attributes.put("id" , rs.getString(5));
+                            break;
+                        }
                     }
                     catch (Exception e) {
 
@@ -129,6 +167,10 @@ public class Main {
                     finally {
                         if(connection != null) try { connection.close(); } catch(SQLException e) {}
                     }
+                    if(attributes.size() == 4)
+                        attributes.put("classID" , classID);
+                    else
+                        halt(404 , "Page not Found");
                 }
                 return new ModelAndView(attributes , "assignment.ftl");
             }
@@ -208,18 +250,32 @@ public class Main {
         }, new FreeMarkerEngine());
 
         before("/login", (request, response) -> {
+            if (request.raw().getHeader(X_FORWARDED_PROTO) != null) {
+                if (request.raw().getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+                    response.redirect("https://" + request.raw().getServerName() + (request.raw().getPathInfo() == null ? "" : request.raw().getPathInfo()));
+                }
+            }
             request.session().attribute("token" , request.queryParams("token"));
             response.redirect("/");
         });
 
         before("/logout", (request, response) -> {
+            if (request.raw().getHeader(X_FORWARDED_PROTO) != null) {
+                if (request.raw().getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+                    response.redirect("https://" + request.raw().getServerName() + (request.raw().getPathInfo() == null ? "" : request.raw().getPathInfo()));
+                }
+            }
             request.session().attribute("token" , null);
             response.redirect("/");
         });
 
         before("/update" , (request , response) -> {
+            if (request.raw().getHeader(X_FORWARDED_PROTO) != null) {
+                if (request.raw().getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+                    response.redirect("https://" + request.raw().getServerName() + (request.raw().getPathInfo() == null ? "" : request.raw().getPathInfo()));
+                }
+            }
             Map<String , Object> user = getUser(request);
-
             if((Boolean) user.get("loggedIn")) {
                 user = (Map<String, Object>) user.get("claims");
                 String role = request.queryParams("role");
@@ -235,6 +291,11 @@ public class Main {
         });
 
         before("/newclass" , (request, response) -> { //TODO: check to make sure role is teacher
+            if (request.raw().getHeader(X_FORWARDED_PROTO) != null) {
+                if (request.raw().getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+                    response.redirect("https://" + request.raw().getServerName() + (request.raw().getPathInfo() == null ? "" : request.raw().getPathInfo()));
+                }
+            }
             String classID = new BigInteger(30, random).toString(32);
             Map<String, Object> user = getUser(request);
             if((Boolean) user.get("loggedIn")) {
@@ -257,6 +318,14 @@ public class Main {
             }
             request.session().attribute("t" , "one");
             response.redirect("/");
+        });
+
+        before((request, response) -> {
+            if (request.raw().getHeader(X_FORWARDED_PROTO) != null) {
+                if (request.raw().getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+                    response.redirect("https://" + request.raw().getServerName() + (request.raw().getPathInfo() == null ? "" : request.raw().getPathInfo()));
+                }
+            }
         });
 
         post("/class/:classID" , (request, response) -> {
@@ -301,7 +370,7 @@ public class Main {
         });
 
         post("/class/:classID/new" , (request , response) -> {
-            String classID = request.params("classID");
+            String classID = request.params(":classID");
             String assignmentID = new BigInteger(30 , random).toString(32);
             ObjectMapper mapper = new ObjectMapper();
             Map<String , Object> jsonReq = new HashMap<>();
@@ -335,6 +404,39 @@ public class Main {
                return "{\"id\" : \"no_change\"}";
            else
                return "{\"id\" : \"" + assignmentID + "\"}";
+        });
+
+        post("/class/:classID/:assignmentID" , (request , response) -> {
+            System.out.println("Doing post to not new");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String , Object> jsonReq = new HashMap<>();
+            String classID = request.params(":classID");
+            String assignmentID = request.params(":assignmentID");
+            Map<String , Object> user = getUser(request);
+            Connection connection = null;
+            int updated = 0;
+            if((Boolean) user.get("loggedIn")) {
+                try {
+                    user = (Map<String , Object>) user.get("claims");
+                    jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    if(jsonReq.get("publish").equals("true"))
+                        updated = stmt.executeUpdate("UPDATE assignments SET published = 'true' , code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                    else
+                        updated = stmt.executeUpdate("UPDATE assignments SET code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                }
+                catch (Exception e) {
+                    System.out.println("Error saving assignment: " + e);
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            if(updated == 0)
+                return "failure";
+            else
+                return "success";
         });
 
         post("/" , (request, response) -> {
