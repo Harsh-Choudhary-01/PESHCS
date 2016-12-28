@@ -94,7 +94,7 @@
 								<tbody>
 									<#list class.assignments as assignment>
 										<tr>
-											<td>${assignment[0]}</td>
+											<td><a href="/class/${class.classID}/${assignment[3]}">${assignment[0]}</a></td>
 											<td>${assignment[1]}</td>
 											<td>${assignment[2]}</td>
 										</tr>

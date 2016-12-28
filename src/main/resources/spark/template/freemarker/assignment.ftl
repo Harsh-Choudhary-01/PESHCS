@@ -36,7 +36,6 @@
 				<h1 class="major">${name}</h1>
 				<h3>Description:</h3>
 				<p>${description}</p>
-				<strong style="color:  red;">Editing and then saving starting code will delete students' progress if published.</strong>
 			</div>
 			<div>
 				<div id="editor">//Enter starting code here</div>

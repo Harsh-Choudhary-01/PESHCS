@@ -67,17 +67,17 @@ public class Main {
                     if (validClass)
                     {
                         ArrayList<Object> assignments = new ArrayList<>();
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
                         rs = stmt.executeQuery("SELECT studentName , studentEmail FROM students WHERE classID = '" + classID + "'");
                         while (rs.next())
                         {
                             joinedStudentsList.add(new String[]{rs.getString("studentName") , rs.getString("studentEmail")});
                         }
                         stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
-                        rs = stmt.executeQuery("SELECT name , description , published FROM assignments WHERE ownerID = '" + user.get("user_id") + "'");
+                        rs = stmt.executeQuery("SELECT name , description , published , assignmentID FROM assignments WHERE ownerID = '" + user.get("user_id") + "'");
                         while(rs.next())
                         {
-                            assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
+                            assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3) , rs.getString(4)});
                         }
                         classInfo.put("assignments" , assignments);
                     }
@@ -107,6 +107,7 @@ public class Main {
             String assignmentID = request.params(":assignmentID");
             Map<String , Object> user = getUser(request);
             Connection connection = null;
+            boolean result = false;
             if((Boolean) user.get("loggedIn"))
             {
                 user = (Map<String , Object>) user.get("claims");
@@ -114,19 +115,62 @@ public class Main {
                 attributes.put("metadata" , metadata);
                 try {
                     if (((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("teacher")) {
-
+                        connection = DatabaseUrl.extract().getConnection();
+                        Statement stmt = connection.createStatement();
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
+                        ResultSet rs = stmt.executeQuery("SELECT classID, name , description from assignments WHERE ownerID = '" + user.get("user_id") + "' AND assignmentID = '" + assignmentID + "'");
+                        result = rs.next();
+                        if(!result)
+                            halt(404 , "Page Not Found");
+                        attributes.put("assignment" , new String[]{rs.getString(2) , rs.getString(3)});
+                        String classID = rs.getString(1);
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][]");
+                        rs = stmt.executeQuery("SELECT studentName , unnest(progress[i:i][4:4]) , studentID FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE classID = '" + classID + "'");
+                        result = false;
+                        ArrayList<Object> students = new ArrayList<>();
+                        while(rs.next())
+                        {
+                            result = true;
+                            students.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
+                        }
+                        if(!result)
+                            halt(404 , "Page Not Found");
+                        attributes.put("students" , students);
                     }
                     else {
-
+                        connection = DatabaseUrl.extract().getConnection();
+                        Statement stmt = connection.createStatement();
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][]");
+                        ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + user.get("user_id") + "'");
+                        result = rs.next();
+                        if(!result)
+                            halt(404 , "Page Not Found");
+                        String classID = rs.getString(1);
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
+                        rs = stmt.executeQuery("SELECT name , description , code from assignments WHERE assignmentID = '" + assignmentID + "' AND classID = '" + classID + "'");
+                        result = rs.next();
+                        attributes.put("assignment" , new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
+                        if(!result)
+                            halt(404 , "Page Not Found");
+                        rs = stmt.executeQuery("SELECT ARRAY(SELECT unnest(progress[i:i][2:3])) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'"); //returns code and output stored
+                        if(rs.next())
+                            attributes.put("progress" , rs.getArray(1).getArray());
+                        attributes.put("classID" , classID);
                     }
+                    attributes.put("id" , assignmentID);
                 }
                 catch (Exception e)
                 {
-
+                    System.out.println("Exception at live page: " + e);
+                    halt(404 , "Page Not Found");
                 }
                 finally {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
+            }
+            else
+            {
+                halt(404 , "Page Not Found");
             }
             return new ModelAndView(attributes , "editor.ftl");
         } , new FreeMarkerEngine());
@@ -209,7 +253,7 @@ public class Main {
                             connection = DatabaseUrl.extract().getConnection();
                             user = (Map<String, Object>) user.get("claims");
                             Statement stmt = connection.createStatement();
-                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
+                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
                             ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + user.get("user_id") + "'");
                             String classID = "";
                             while(rs.next())
@@ -458,8 +502,8 @@ public class Main {
                         ResultSet rs = stmt.executeQuery("SELECT a.* FROM classes a JOIN LATERAL generate_subscripts(a.invitedStudents , 1) i on a.invitedStudents[i:i] = '{{" + jsonReq.get("student_name") + " , " + jsonReq.get("student_id") + "}}' WHERE classID = '" + jsonReq.get("class_id") + "'");
                         while(rs.next())
                         {
-                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentCode text, studentName text , studentEmail text)");
-                            stmt.executeUpdate("INSERT INTO students(userID , classID , studentCode , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + jsonReq.get("student_id") + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
+                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
+                            stmt.executeUpdate("INSERT INTO students(userID , classID , studentID , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + jsonReq.get("student_id") + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
                             updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + jsonReq.get("student_id") + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
                             break;
                         }
@@ -477,6 +521,47 @@ public class Main {
                 return "{\"status\" : \"fail\"}";
             else
                 return "{\"status\" : \"success\"}";
+        });
+
+        post("/assignment/:assignmentID" , (request , response) -> {
+            String assignmentID = request.params(":assignmentID");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> jsonReq = new HashMap<>();
+            Connection connection = null;
+            int updated = 0;
+            Map<String , Object> user = getUser(request);
+            if((Boolean) user.get("loggedIn"))
+            {
+                user = (Map<String , Object>) user.get("claims");
+                try
+                {
+                    jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    if(jsonReq.get("type").equals("save"))
+                    {
+                        ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                        if(rs.next())
+                        {
+                            int i = rs.getInt(1);
+                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
+                        }
+                        else
+                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Error while posting to assign page: " + e);
+                }
+                finally {
+                    if(connection != null) try { connection.close(); } catch(SQLException e) {}
+                }
+            }
+            if(updated == 0)
+                return "failure";
+            else
+                return "success";
         });
     }
 
