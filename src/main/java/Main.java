@@ -133,8 +133,6 @@ public class Main {
                             result = true;
                             students.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3)});
                         }
-                        if(!result)
-                            halt(404 , "Page Not Found");
                         attributes.put("students" , students);
                     }
                     else {
