@@ -43,7 +43,7 @@
 			<div style="height: 600px;"></div>
 			<div class="inner">
 				<div class="row uniform">
-					<#if !published>
+					<#if published == "false">
 						<div class="6u 12u$(medium)">
 							<li><a href="#" class="button special fit" id="save">Save</a></li>
 						</div>
