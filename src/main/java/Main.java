@@ -206,12 +206,12 @@ public class Main {
                         }
                     }
                     catch (Exception e) {
-
+                        System.out.println("Excception: " + e);
                     }
                     finally {
                         if(connection != null) try { connection.close(); } catch(SQLException e) {}
                     }
-                    if(attributes.size() == 4)
+                    if(attributes.size() == 5)
                         attributes.put("classID" , classID);
                     else
                         halt(404 , "Page not Found");
