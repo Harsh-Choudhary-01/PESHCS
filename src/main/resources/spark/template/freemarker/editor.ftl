@@ -109,7 +109,7 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			if(${role} === 'student')
+			if('${role}' === 'student')
 				editor.setValue(decodeURIComponent('${(progress[0])!assignment[2]}'));
 			$(".save").click(function(e) {
 				e.preventDefault();
