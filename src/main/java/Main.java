@@ -124,7 +124,7 @@ public class Main {
                             halt(404 , "Page Not Found");
                         attributes.put("assignment" , new String[]{rs.getString(2) , rs.getString(3)});
                         String classID = rs.getString(1);
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][]");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][])");
                         rs = stmt.executeQuery("SELECT studentName , unnest(progress[i:i][4:4]) , studentID FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE classID = '" + classID + "'");
                         result = false;
                         ArrayList<Object> students = new ArrayList<>();
@@ -140,7 +140,7 @@ public class Main {
                     else {
                         connection = DatabaseUrl.extract().getConnection();
                         Statement stmt = connection.createStatement();
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][]");
+                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text , progress text[][])");
                         ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + user.get("user_id") + "'");
                         result = rs.next();
                         if(!result)
