@@ -15,7 +15,7 @@
 	</style>
 	<#if role == "student">
 		<script type="text/javascript">
-			document.getElementById("editor").innerHTML = decodeURIComponent(${(progress[0])!assignment[2]});
+			document.getElementById("editor").innerHTML = decodeURIComponent('${(progress[0])!assignment[2]}');
 			ace.require("ace/ext/language_tools");
 			var editor = ace.edit("editor");
 			editor.setTheme("ace/theme/twilight");

@@ -16,7 +16,7 @@
 	<!--[if lte IE 9]><link rel="stylesheet" href="../../css/ie9.css" /><![endif]-->
 	<!--[if lte IE 8]><link rel="stylesheet" href="../../css/ie8.css" /><![endif]-->
 	<script type="text/javascript">
-		document.getElementById("editor").innerHTML = decodeURIComponent(${code});
+		document.getElementById("editor").innerHTML = decodeURIComponent('${code}');
 	</script>
 </head>
 <body>
