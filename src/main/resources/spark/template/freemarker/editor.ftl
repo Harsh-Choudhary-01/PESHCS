@@ -59,7 +59,7 @@
 				<div class="inner">
 					<h2>Output:</h2>
 					<hr />
-					<pre>${progress[1]}</pre>	
+					<pre>${(progress[1])!"No Output Yet"}</pre>	
 				</div>
 			<#else>
 				<div class="inner">
