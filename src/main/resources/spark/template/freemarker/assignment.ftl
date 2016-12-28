@@ -15,9 +15,6 @@
 	</style>
 	<!--[if lte IE 9]><link rel="stylesheet" href="../../css/ie9.css" /><![endif]-->
 	<!--[if lte IE 8]><link rel="stylesheet" href="../../css/ie8.css" /><![endif]-->
-	<script type="text/javascript">
-		document.getElementById("editor").innerHTML = decodeURIComponent('${code}');
-	</script>
 </head>
 <body>
 	<header id="header">
@@ -68,17 +65,18 @@
 	<script src="../../ace/src-min/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../ace/src-min/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
-		ace.require("ace/ext/language_tools");
-		var editor = ace.edit("editor");
-		editor.setTheme("ace/theme/twilight");
-		var JavaMode = ace.require("ace/mode/java").Mode;
-		editor.session.setMode(new JavaMode());
-		editor.setOptions({
-		    enableBasicAutocompletion: true,
-		    enableSnippets: false,
-        	enableLiveAutocompletion: true
-		});
 		$(document).ready(function() {
+			ace.require("ace/ext/language_tools");
+			var editor = ace.edit("editor");
+			editor.setTheme("ace/theme/twilight");
+			var JavaMode = ace.require("ace/mode/java").Mode;
+			editor.session.setMode(new JavaMode());
+			editor.setOptions({
+			    enableBasicAutocompletion: true,
+			    enableSnippets: false,
+	        	enableLiveAutocompletion: true
+			});
+			editor.setValue(decodeURIComponent('${code}'));
 			$("#save").click(function() {
 				$.ajax({
 					url: window.location.href,
