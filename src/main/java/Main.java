@@ -557,7 +557,9 @@ public class Main {
                     }
                     else if(jsonReq.get("type").equals("compile"))
                     {
-                        return compileCode(jsonReq.get("code") , jsonReq.get("input") , (String)user.get("user_id"));
+                        String output =  compileCode(jsonReq.get("code") , jsonReq.get("input") , (String)user.get("user_id"));
+                        System.out.println("Finished compile");
+                        return output;
                     }
                 }
                 catch (Exception e)
@@ -565,6 +567,7 @@ public class Main {
                     System.out.println("Error while posting to assign page: " + e);
                 }
                 finally {
+                    System.out.println("Running post finally");
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
@@ -693,39 +696,50 @@ public class Main {
         BufferedReader runStdOutput = null;
         BufferedWriter runStdIn = null;
         BufferedWriter out = null;
+        Process runProcess = null;
+        Process compileProcess = null;
         try {
             String code = URLDecoder.decode(encodedCode , "UTF-8");
+            String input = URLDecoder.decode(encodedInput , "UTF-8");
             File file = new File(userID + "/Main.java");
             file.getParentFile().mkdirs();
             out = new BufferedWriter(new FileWriter(file));
             out.write(code);
             out.close();
             ProcessBuilder pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/Main.java");
-            Process compileProcess = pb.start();
+            compileProcess = pb.start();
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String output = "";
             String temp;
             while((temp = stdOutput.readLine()) != null)
             {
-                output += temp;
-                output += "\n";
+                if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
+                    output += temp;
+                    output += "\n";
+                }
             }
+            if(!output.equals(""))
+                return output;
             compileProcess.destroy();
             compileProcess.waitFor();
             pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , "Main");
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();
-            Process runProcess = pb.start();
+            System.out.println("Right before run java");
+            runProcess = pb.start();
             runStdOutput = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
             runStdIn = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream()));
-            runStdIn.write(encodedInput);
+            runStdIn.write(input);
             runStdIn.close();
+            System.out.println("Right before waiting for output");
             while((temp = runStdOutput.readLine()) != null) {
                 output += temp;
                 output += "\n";
             }
+            System.out.println("Finished waitng for output , getting ready to destroy");
             runProcess.destroy();
+            System.out.println("Finished destroy");
             runProcess.waitFor();
             return output;
         }
@@ -734,6 +748,7 @@ public class Main {
             return "error";
         }
         finally {
+            System.out.println("Running finally");
             try
             {
                 if(out != null)
@@ -745,8 +760,13 @@ public class Main {
                 if(runStdIn != null)
                     runStdIn.close();
                 FileUtils.deleteDirectory(new File(userID));
+                System.out.println("Finished all finally trying to destroy process now");
+                runProcess.destroy();
+                runProcess.waitFor();
+                System.out.println("Finished destroying process");
+
             }
-            catch (Exception e) {}
+            catch (Exception e) {System.out.println("Exception in finally block: " + e);}
         }
     }
 }
