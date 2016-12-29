@@ -741,17 +741,19 @@ public class Main {
             if(!runProcess.waitFor(5 , TimeUnit.SECONDS))
             {
                 System.out.println("Wait for run");
-                runProcess.destroy();
-                runProcess.waitFor();
-                System.out.println("Finished destroy");
                 List<String> lines = runStdOutput.lines().collect(Collectors.toList());
+                System.out.println("collected into list");
                 for(String line : lines) {
                     output += line;
                     output += "\n";
                     output += "Your program took too long and was stopped";
                 }
                 System.out.println("Finished collecting output");
+                runProcess.destroy();
+                runProcess.waitFor();
+                System.out.println("Finished destroy");
                 runStdOutput.close();
+                System.out.println("Finished close");
             }
             else {
                 List<String> lines = runStdOutput.lines().collect(Collectors.toList());
