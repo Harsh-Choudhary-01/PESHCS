@@ -32,7 +32,7 @@
 				<div class="inner">
 					<h1 class="major">${assignment[0]}</h1>
 					<ul class="actions fit">
-						<li><a href="#" class="button special fit">Compile</a></li>
+						<li><a href="#" class="button special fit compile">Compile</a></li>
 						<li><a href="#" class="button special fit save">Save</a></li>
 						<li><a href="#" class="button special fit">Help</a></li>
 					</ul>
@@ -42,9 +42,12 @@
 				</div>
 				<div style="height: 600px;"></div>
 				<div class="inner">
+					<h2>Enter Input For Program Here</h2>
+					<textarea class="stdin"></textarea>
+					<hr />
 					<h2>Output:</h2>
 					<hr />
-					<pre>${(progress[1])!"No Output Yet"}</pre>	
+					<pre><code>${(progress[1])!"No Output Yet"}</code></pre>	
 				</div>
 			<#else>
 				<div class="inner">
@@ -110,7 +113,7 @@
 	        	enableLiveAutocompletion: true
 			});
 			if('${role}' === 'student')
-				editor.setValue(decodeURIComponent('${((progress[0])!assignment[2])!""}'));
+				editor.setValue(decodeURIComponent("${((progress[0])!assignment[2])!""}"));
 			$(".save").click(function(e) {
 				e.preventDefault();
 				$.ajax({
@@ -123,6 +126,18 @@
 							alert("Saved successfully");
 						else
 							alert("Could not save please try again");
+					}
+				});
+			});
+			$(".compile").click(function(e) {
+				e.preventDefault();
+				$.ajax({
+					url: "/assignment/${id}",
+					method: 'POST' ,
+					dataType: 'text' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "type" : "compile"}' ,
+					success: function(data) {
+						alert(data);
 					}
 				});
 			});

@@ -1,6 +1,7 @@
+import java.io.*;
 import java.sql.*;
 import java.util.*;
-
+import java.net.URLDecoder;
 import com.auth0.jwt.JWTVerifier;
 
 import static spark.Spark.*;
@@ -15,16 +16,22 @@ import static spark.Spark.get;
 import java.security.SecureRandom;
 import java.math.BigInteger;
 import com.heroku.sdk.jdbc.DatabaseUrl;
+import org.eclipse.jetty.websocket.api.*;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.io.FileUtils;
 
+import org.json.*;
 public class Main {
     private static String clientId = System.getenv("AUTH0_CLIENT_ID");
     private static String clientDomain = System.getenv("AUTH0_DOMAIN");
     private static String managementToken = System.getenv("AUTH0_MANAGE");
     public static final String X_FORWARDED_PROTO = "x-forwarded-proto";
+    static Map<String , Session> joinedUsers = new ConcurrentHashMap<>();
     public static void main(String[] args) {
 
         port(Integer.valueOf(System.getenv("PORT")));
         staticFileLocation("/spark/template/freemarker");
+        webSocket("/socket", WebSocketHandler.class);
         SecureRandom random = new SecureRandom();
 
         get("/hello", (request, response) -> "Hello World");
@@ -104,6 +111,7 @@ public class Main {
 
         get("/assignment/:assignmentID" , (request , response) -> {
             Map<String , Object> attributes = new HashMap<>();
+            attributes.put("port" , Integer.valueOf(System.getenv("PORT")));
             String assignmentID = request.params(":assignmentID");
             Map<String , Object> user = getUser(request);
             Connection connection = null;
@@ -430,8 +438,8 @@ public class Main {
                     if(updated != 0)
                     {
                         stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
-                        updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , '" +
-                                jsonReq.get("code") + "' , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
+                        updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , $$" +
+                                jsonReq.get("code") + "$$ , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
                     }
                 }
                 catch(Exception e)
@@ -464,9 +472,9 @@ public class Main {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     if(jsonReq.get("publish").equals("true"))
-                        updated = stmt.executeUpdate("UPDATE assignments SET published = 'true' , code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                        updated = stmt.executeUpdate("UPDATE assignments SET published = 'true' , code = $$" + jsonReq.get("code") + "$$ WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
                     else
-                        updated = stmt.executeUpdate("UPDATE assignments SET code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                        updated = stmt.executeUpdate("UPDATE assignments SET code = $$" + jsonReq.get("code") + "$$ WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
                 }
                 catch (Exception e) {
                     System.out.println("Error saving assignment: " + e);
@@ -542,10 +550,14 @@ public class Main {
                         if(rs.next())
                         {
                             int i = rs.getInt(1);
-                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
+                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , $$" +  jsonReq.get("code")  + "$$, No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
                         }
                         else
-                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
+                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , $$" +  jsonReq.get("code")  + "$$, No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
+                    }
+                    else if(jsonReq.get("type").equals("compile"))
+                    {
+                        return compileCode(jsonReq.get("code") , jsonReq.get("input") , (String)user.get("user_id"));
                     }
                 }
                 catch (Exception e)
@@ -612,6 +624,129 @@ public class Main {
             return null;
         }
     }
-
-
+    public static void disconnectUser(Session user) {
+        if(joinedUsers.containsValue(user))
+        {
+            Optional<String> key = joinedUsers.keySet().stream().filter(k -> joinedUsers.get(k).equals(user)).findFirst();
+            if(key.isPresent())
+                joinedUsers.remove(key.get());
+        }
+    }
+    public static void receiveMessage(Session user , String message) {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String , String> jsonReq = new HashMap<>();
+        Connection connection = null;
+        try {
+            jsonReq = mapper.readValue(message , new TypeReference<Map<String , String>>(){});
+            if(jsonReq.get("type").equals("auth")) {
+                Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
+                if(userInfo.containsKey("loggedIn")) {
+                    userInfo = (Map<String, Object>) userInfo.get("claims");
+                    String userID = (String)userInfo.get("user_id");
+                    String role = (String)((Map<String , Object>)(getDynamicUser(userID).get("app_metadata"))).get("role");
+                    if(role.equals("teacher"))
+                        joinedUsers.put(userID , user);
+                    else
+                    {
+                        connection = DatabaseUrl.extract().getConnection();
+                        Statement stmt = connection.createStatement();
+                        ResultSet rs = stmt.executeQuery("SELECT studentID from students WHERE userID = '" + userID + "'");
+                        if(rs.next())
+                            joinedUsers.put(rs.getString(1) , user);
+                    }
+                }
+            }
+            else if(jsonReq.get("type").equals("help"))
+            {
+                Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
+                if(userInfo.containsKey("loggedIn"))
+                {
+                    userInfo = (Map<String , Object>) userInfo.get("claims");
+                    String userID = (String)userInfo.get("claims");
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT classID , studentName from students WHERE userID = '" + userID + "'");
+                    if(rs.next())
+                    {
+                        String studentName = rs.getString(2);
+                        rs = stmt.executeQuery("SELECT ownerID from classes WHERE classID = '" + rs.getString(1) + "'");
+                        if(rs.next())
+                        {
+                            Session teacher = joinedUsers.get(rs.getString(1));
+                            teacher.getRemote().sendString(String.valueOf(new JSONObject()
+                            .put("type" , "help")
+                            .put("student" , studentName)));
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Error while receiving message: " + e);
+        }
+        finally {
+            if(connection != null) try { connection.close(); } catch(SQLException e) {}
+        }
+    }
+    private static String compileCode(String encodedCode , String encodedInput , String userID) {
+        BufferedReader stdOutput = null;
+        BufferedReader runStdOutput = null;
+        BufferedWriter runStdIn = null;
+        try {
+            String code = URLDecoder.decode(encodedCode , "UTF-8");
+            File file = new File(userID + "/Main.java");
+            file.getParentFile().mkdirs();
+            BufferedWriter out = new BufferedWriter(new FileWriter(file));
+            out.write(code);
+            out.close();
+            ProcessBuilder pb = new ProcessBuilder("javac " + userID + "/Main.java");
+            pb.redirectErrorStream(true);
+            Process compileProcess = pb.start();
+            stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getInputStream()));
+            String output = "";
+            String temp;
+            while((temp = stdOutput.readLine()) != null)
+            {
+                output += temp;
+                output += "\n";
+            }
+            if(!output.equals(""))
+                return output;
+            compileProcess.destroy();
+            compileProcess.waitFor();
+            pb = new ProcessBuilder("java " + userID + "/Main");
+            pb.redirectErrorStream(true);
+            Map<String , String> env = pb.environment();
+            env.clear();
+            Process runProcess = pb.start();
+            runStdOutput = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
+            runStdIn = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream()));
+            runStdIn.write(encodedInput);
+            runStdIn.close();
+            while((temp = runStdOutput.readLine()) != null) {
+                output += temp;
+                output += "\n";
+            }
+            runProcess.destroy();
+            runProcess.waitFor();
+            return output;
+        }
+        catch (Exception e) {
+            System.out.println("Exception while compiling");
+            return "error";
+        }
+        finally {
+            try
+            {
+                if(stdOutput != null)
+                    stdOutput.close();
+                if(runStdOutput != null)
+                    runStdOutput.close();
+                if(runStdIn != null)
+                    runStdIn.close();
+                FileUtils.deleteDirectory(new File(userID));
+            }
+            catch (Exception e) {}
+        }
+    }
 }

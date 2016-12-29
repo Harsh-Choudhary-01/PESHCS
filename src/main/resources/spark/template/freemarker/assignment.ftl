@@ -76,7 +76,7 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			editor.setValue(decodeURIComponent('${code}'));
+			editor.setValue(decodeURIComponent("${code}"));
 			$("#save").click(function() {
 				$.ajax({
 					url: window.location.href,
@@ -99,9 +99,9 @@
 					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "publish" : "true"}' ,
 					success: function(data) {
 						if(data === 'success')
-							alert("Saved successfully");
+							alert("Published successfully");
 						else
-							alert("Could not save please try again");
+							alert("Could not publish please try again");
 					}
 				});
 			});
