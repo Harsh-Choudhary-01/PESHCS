@@ -711,10 +711,10 @@ public class Main {
             dir = new File("/app/.jdk/bin/javac");
             exists = dir.exists();
             System.out.println("Directory " + dir.getPath() + " exists: " + exists);
-            dir = new File("/app/.jdk/bin/javac/" + userID);
+            dir = new File(userID);
             exists = dir.exists();
             System.out.println("Directory " + dir.getPath() + " exists: " + exists);
-            dir = new File("/app/.jdk/bin/javac/" + userID + "/Main.java");
+            dir = new File(userID + "/Main.java");
             exists = dir.exists();
             System.out.println("Directory " + dir.getPath() + " exists: " + exists);
             ProcessBuilder pb = new ProcessBuilder("/app/.jdk/bin/javac " + userID + "/Main.java");
