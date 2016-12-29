@@ -82,7 +82,7 @@
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "publish" : "false"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "publish" : "false"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Saved successfully");
@@ -96,7 +96,7 @@
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "publish" : "true"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "publish" : "true"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Published successfully");

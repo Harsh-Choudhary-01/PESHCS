@@ -438,8 +438,8 @@ public class Main {
                     if(updated != 0)
                     {
                         stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
-                        updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , $$" +
-                                jsonReq.get("code") + "$$ , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
+                        updated = stmt.executeUpdate("INSERT INTO assignments (name , description , code , published , classID , ownerID , assignmentID) VALUES('" + jsonReq.get("name") + "' , '" + jsonReq.get("description") + "' , '" +
+                                jsonReq.get("code") + "' , '" + jsonReq.get("publish") + "' , '" + classID + "' , '" + user.get("user_id") + "' , '" + assignmentID + "')");
                     }
                 }
                 catch(Exception e)
@@ -472,9 +472,9 @@ public class Main {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     if(jsonReq.get("publish").equals("true"))
-                        updated = stmt.executeUpdate("UPDATE assignments SET published = 'true' , code = $$" + jsonReq.get("code") + "$$ WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                        updated = stmt.executeUpdate("UPDATE assignments SET published = 'true' , code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
                     else
-                        updated = stmt.executeUpdate("UPDATE assignments SET code = $$" + jsonReq.get("code") + "$$ WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
+                        updated = stmt.executeUpdate("UPDATE assignments SET code = '" + jsonReq.get("code") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "' AND assignmentID = '" + assignmentID + "'");
                 }
                 catch (Exception e) {
                     System.out.println("Error saving assignment: " + e);
@@ -550,10 +550,10 @@ public class Main {
                         if(rs.next())
                         {
                             int i = rs.getInt(1);
-                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , $$" +  jsonReq.get("code")  + "$$, No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
+                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
                         }
                         else
-                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , $$" +  jsonReq.get("code")  + "$$, No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
+                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
                     }
                     else if(jsonReq.get("type").equals("compile"))
                     {
@@ -732,7 +732,7 @@ public class Main {
             return output;
         }
         catch (Exception e) {
-            System.out.println("Exception while compiling");
+            System.out.println("Exception while compiling" + e);
             return "error";
         }
         finally {

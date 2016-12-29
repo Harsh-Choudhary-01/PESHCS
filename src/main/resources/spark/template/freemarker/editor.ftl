@@ -46,7 +46,6 @@
 					<textarea class="stdin"></textarea>
 					<hr />
 					<h2>Output:</h2>
-					<hr />
 					<pre><code>${(progress[1])!"No Output Yet"}</code></pre>	
 				</div>
 			<#else>
@@ -120,7 +119,7 @@
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "type" : "save"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "save"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Saved successfully");
@@ -135,7 +134,7 @@
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()) + '" , "type" : "compile"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile"}' ,
 					success: function(data) {
 						alert(data);
 					}
