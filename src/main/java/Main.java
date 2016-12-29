@@ -701,9 +701,8 @@ public class Main {
             out.write(code);
             out.close();
             ProcessBuilder pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/Main.java");
-            pb.redirectErrorStream(true);
             Process compileProcess = pb.start();
-            stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getInputStream()));
+            stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String output = "";
             String temp;
             while((temp = stdOutput.readLine()) != null)
@@ -713,7 +712,7 @@ public class Main {
             }
             compileProcess.destroy();
             compileProcess.waitFor();
-            pb = new ProcessBuilder("/app/.jdk/bin/javac/java" , userID + "/Main");
+            pb = new ProcessBuilder("/app/.jdk/bin/java" , userID + "/Main");
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();
