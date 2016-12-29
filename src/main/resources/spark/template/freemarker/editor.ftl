@@ -46,7 +46,7 @@
 					<textarea class="stdin"></textarea>
 					<hr />
 					<h2>Output:</h2>
-					<pre><code>${(progress[1])!"No Output Yet"}</code></pre>	
+					<pre><code class="outputContainer">${(progress[1])!"No Output Yet"}</code></pre>	
 				</div>
 			<#else>
 				<div class="inner">
@@ -136,7 +136,7 @@
 					dataType: 'text' ,
 					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + $('.stdin').val() + '"}' ,
 					success: function(data) {
-						alert(data);
+						$('.outputContainer').text(data);
 					}
 				});
 			});
