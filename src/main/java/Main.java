@@ -712,7 +712,7 @@ public class Main {
             }
             compileProcess.destroy();
             compileProcess.waitFor();
-            pb = new ProcessBuilder("/app/.jdk/bin/java" , userID + "/Main");
+            pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , "Main");
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();
