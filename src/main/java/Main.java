@@ -711,8 +711,6 @@ public class Main {
                 output += temp;
                 output += "\n";
             }
-            if(!output.equals(""))
-                return output;
             compileProcess.destroy();
             compileProcess.waitFor();
             pb = new ProcessBuilder("/app/.jdk/bin/javac/java" , userID + "/Main");
