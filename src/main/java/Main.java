@@ -740,20 +740,13 @@ public class Main {
             System.out.println("Waited for 100 ms: " + runProcess.waitFor(100 , TimeUnit.MILLISECONDS));
             if(!runProcess.waitFor(5 , TimeUnit.SECONDS))
             {
-                System.out.println("Wait for run");
-                List<String> lines = runStdOutput.lines().collect(Collectors.toList());
-                System.out.println("collected into list");
-                for(String line : lines) {
-                    output += line;
-                    output += "\n";
-                    output += "Your program took too long and was stopped";
-                }
-                System.out.println("Finished collecting output");
+                char[] characters = new char[10000];
+                runStdOutput.read(characters);
+                output = new String(characters);
+                output += "\nYour program was terminated because of long runtime. Output might be missing";
                 runProcess.destroy();
                 runProcess.waitFor();
-                System.out.println("Finished destroy");
                 runStdOutput.close();
-                System.out.println("Finished close");
             }
             else {
                 List<String> lines = runStdOutput.lines().collect(Collectors.toList());
