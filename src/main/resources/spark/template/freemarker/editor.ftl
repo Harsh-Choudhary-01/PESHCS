@@ -134,7 +134,7 @@
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + $('.stdin').val() + '"}' ,
 					success: function(data) {
 						alert(data);
 					}
