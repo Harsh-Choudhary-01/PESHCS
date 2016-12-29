@@ -18,6 +18,9 @@ import java.math.BigInteger;
 import com.heroku.sdk.jdbc.DatabaseUrl;
 import org.eclipse.jetty.websocket.api.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
 
 import org.json.*;
@@ -711,6 +714,7 @@ public class Main {
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String output = "";
             String temp;
+            long startTime = System.currentTimeMillis();
             while((temp = stdOutput.readLine()) != null)
             {
                 if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
@@ -733,14 +737,26 @@ public class Main {
             runStdIn.write(input);
             runStdIn.close();
             System.out.println("Right before waiting for output");
-            while((temp = runStdOutput.readLine()) != null) {
-                output += temp;
-                output += "\n";
+            if(!runProcess.waitFor(10 , TimeUnit.SECONDS))
+            {
+                List<String> lines = runStdOutput.lines().collect(Collectors.toList());
+                for(String line : lines) {
+                    output += line;
+                    output += "\n";
+                    output += "Your program took too long and was stopped";
+                }
+                runProcess.destroy();
+                runProcess.waitFor();
+                runStdOutput.close();
             }
-            System.out.println("Finished waitng for output , getting ready to destroy");
-            runProcess.destroy();
-            System.out.println("Finished destroy");
-            runProcess.waitFor();
+            else {
+                List<String> lines = runStdOutput.lines().collect(Collectors.toList());
+                for(String line : lines) {
+                    output += line;
+                    output += "\n";
+                }
+                runStdOutput.close();
+            }
             return output;
         }
         catch (Exception e) {
