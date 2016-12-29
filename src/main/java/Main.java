@@ -737,8 +737,10 @@ public class Main {
             runStdIn.write(input);
             runStdIn.close();
             System.out.println("Right before waiting for output");
-            if(!runProcess.waitFor(10 , TimeUnit.SECONDS))
+            System.out.println("Waited for 100 ms: " + runProcess.waitFor(100 , TimeUnit.MILLISECONDS));
+            if(!runProcess.waitFor(5 , TimeUnit.SECONDS))
             {
+                System.out.println("Wait for run");
                 List<String> lines = runStdOutput.lines().collect(Collectors.toList());
                 for(String line : lines) {
                     output += line;
