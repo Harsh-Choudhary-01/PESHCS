@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.URLEncoder;
 import java.sql.*;
 import java.util.*;
 import java.net.URLDecoder;
@@ -558,11 +559,22 @@ public class Main {
                         else
                             updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
                     }
-                    else if(jsonReq.get("type").equals("compile"))
-                    {
-                        String output =  compileCode(jsonReq.get("code") , jsonReq.get("input") , (String)user.get("user_id"));
-                        System.out.println("Finished compile");
-                        return output;
+                    else if(jsonReq.get("type").equals("compile")) {
+                        String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), (String) user.get("user_id"));
+                        if(compiledInfo[0].equals("error"))
+                            return "error";
+                        ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                        if(rs.next())
+                        {
+                            int i = rs.getInt(1);
+                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , " + URLEncoder.encode(compiledInfo[1] , "UTF-8") + " , " + compiledInfo[0] + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                        }
+                        else
+                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , " + URLEncoder.encode(compiledInfo[1] , "UTF-8") + " , " + compiledInfo[0] + "}}') WHERE userID = '" + user.get("user_id") + "'");
+                        if(updated == 0)
+                            return compiledInfo[1] + "\nCould not save please try again or use save button";
+                        else
+                            return compiledInfo[1];
                     }
                 }
                 catch (Exception e)
@@ -570,7 +582,6 @@ public class Main {
                     System.out.println("Error while posting to assign page: " + e);
                 }
                 finally {
-                    System.out.println("Running post finally");
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
@@ -694,13 +705,13 @@ public class Main {
             if(connection != null) try { connection.close(); } catch(SQLException e) {}
         }
     }
-    private static String compileCode(String encodedCode , String encodedInput , String userID) {
+    private static String[] compileCode(String encodedCode , String encodedInput , String userID) {
         BufferedReader stdOutput = null;
         BufferedReader runStdOutput = null;
         BufferedWriter runStdIn = null;
         BufferedWriter out = null;
         Process runProcess = null;
-        Process compileProcess = null;
+        Process compileProcess;
         try {
             String code = URLDecoder.decode(encodedCode , "UTF-8");
             String input = URLDecoder.decode(encodedInput , "UTF-8");
@@ -714,7 +725,6 @@ public class Main {
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String output = "";
             String temp;
-            long startTime = System.currentTimeMillis();
             while((temp = stdOutput.readLine()) != null)
             {
                 if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
@@ -723,22 +733,19 @@ public class Main {
                 }
             }
             if(!output.equals(""))
-                return output;
+                return new String[] {"No" , output};
             compileProcess.destroy();
             compileProcess.waitFor();
             pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , "Main");
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();
-            System.out.println("Right before run java");
             runProcess = pb.start();
             runStdOutput = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
             runStdIn = new BufferedWriter(new OutputStreamWriter(runProcess.getOutputStream()));
             runStdIn.write(input);
             runStdIn.close();
-            System.out.println("Right before waiting for output");
-            System.out.println("Waited for 100 ms: " + runProcess.waitFor(100 , TimeUnit.MILLISECONDS));
-            if(!runProcess.waitFor(5 , TimeUnit.SECONDS))
+            if(!runProcess.waitFor(10 , TimeUnit.SECONDS))
             {
                 char[] characters = new char[10000];
                 runStdOutput.read(characters);
@@ -749,21 +756,22 @@ public class Main {
                 runStdOutput.close();
             }
             else {
+                StringBuilder builder = new StringBuilder();
                 List<String> lines = runStdOutput.lines().collect(Collectors.toList());
                 for(String line : lines) {
-                    output += line;
-                    output += "\n";
+                    builder.append(line);
+                    builder.append("\n");
                 }
+                output = builder.toString();
                 runStdOutput.close();
             }
-            return output;
+            return new String[] {"Yes" , output};
         }
         catch (Exception e) {
             System.out.println("Exception while compiling" + e);
-            return "error";
+            return new String[] {"error"};
         }
         finally {
-            System.out.println("Running finally");
             try
             {
                 if(out != null)
@@ -775,11 +783,8 @@ public class Main {
                 if(runStdIn != null)
                     runStdIn.close();
                 FileUtils.deleteDirectory(new File(userID));
-                System.out.println("Finished all finally trying to destroy process now");
                 runProcess.destroy();
                 runProcess.waitFor();
-                System.out.println("Finished destroying process");
-
             }
             catch (Exception e) {System.out.println("Exception in finally block: " + e);}
         }
