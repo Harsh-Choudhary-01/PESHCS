@@ -197,12 +197,14 @@
 			});
 			$(".exitEdit").click(function(e) {
 				e.preventDefault();
+				$('.outputContainer').text('');
 				editing = false;
 				if(!editor.getReadOnly)
 					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '"}');
 				$('.editorControls').addClass('hidden');
 			});
 			$(".editCode").click(function(e) {
+				e.preventDefault();
 				webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
 				alert("Downloading newest version of student code");
 			});
@@ -217,8 +219,8 @@
 				alert("Request sent");
 			});
 		});
-		function handleMessage(msg) {
-			console.log("Handling message: " + msg);
+		function handleMessage(message) {
+			console.log("Handling message: " + message);
 			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
 				alert(message.student + " is asking for help.")
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
