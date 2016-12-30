@@ -80,7 +80,7 @@
 						</div>
 					</section>
 				</div>
-				<div class="editorControls hidden">
+				<section class="editorControls hidden">
 					<div>
 						<div id="editor"></div>
 					</div>
@@ -93,9 +93,11 @@
 						</ul>
 						<h2>Enter Input For Program Here</h2>
 						<textarea class="stdin"></textarea>
+						<hr />
+						<h2>Output:</h2>
 						<pre><code class="outputContainer"></code></pre>
 					</div>
-				</div>
+				</section>
 			</#if>
 		</section>
 	</div>
@@ -117,6 +119,7 @@
 	        	enableLiveAutocompletion: true
 			});
 			var currentStudent;
+			var editing = false;
 			var webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
 			webSocket.onmessage = function(msg) {handleMessage(msg);};
 			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
@@ -177,14 +180,14 @@
 					dataType: 'text' ,
 					data: '{"type" : "code" , "id" : "' + id + '"}' ,
 					success: function(data) {
-						if(data != 'failure') {
+						if(data === 'Student has no saved code yet')
+						{
+							alert('Student has no saved code yet');
+						}
+						else if(data != 'failure') {
 							$('.editorControls').removeClass('hidden');
 							editor.setValue(decodeURIComponent(data));
 							currentStudent = id;
-						}
-						else if(data === 'Student has no saved code yet')
-						{
-							alert('Student has no saved code yet');
 						}
 						else {
 							alert("Could not retrieve code please try again");
@@ -194,6 +197,7 @@
 			});
 			$(".exitEdit").click(function(e) {
 				e.preventDefault();
+				editing = false;
 				if(!editor.getReadOnly)
 					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '"}');
 				$('.editorControls').addClass('hidden');
@@ -214,6 +218,7 @@
 			});
 		});
 		function handleMessage(msg) {
+			console.log("Handling message: " + msg);
 			var message = JSON.parse(msg);
 			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
 				alert(message.student + " is asking for help.")
@@ -229,6 +234,7 @@
 				alert("Teacher is locking code to edit");
 			}
 			else if(message.type === 'editGranted') { //called on teacher side once student has sent latest version of code
+				editing = true;
 				editor.setReadOnly(false);
 				editor.setValue(decodeURIComponent(message.code));
 			}
