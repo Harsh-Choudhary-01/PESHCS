@@ -109,6 +109,7 @@
 	<script type="text/javascript">
 		var webSocket;
 		var editor;
+		var editing = false;
 		$(document).ready(function() {
 			ace.require("ace/ext/language_tools");
 			editor = ace.edit("editor");
@@ -120,8 +121,7 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			var currentStudent;
-			var editing = false;
+			var currentStudent;	
 			webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
 			webSocket.onmessage = function(msg) {handleMessage(msg.data);};
 			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
@@ -200,16 +200,22 @@
 			$(".exitEdit").click(function(e) {
 				e.preventDefault();
 				$('.outputContainer').text('');
-				editing = false;
-				if(!editor.getReadOnly)
+				if(editing)
+				{
+					console.log("Sending webSocket");
 					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
+				}
+				editing = false;
 				editor.setReadOnly(true);
 				$('.editorControls').addClass('hidden');
 			});
 			$(".editCode").click(function(e) {
-				e.preventDefault();
-				webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
-				alert("Downloading newest version of student code");
+				if(!editing)
+				{
+					e.preventDefault();
+					webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
+					alert("Downloading newest version of student code");
+				}
 			});
 			$('.hideOutput').click(function(e) {
 				e.preventDefault();

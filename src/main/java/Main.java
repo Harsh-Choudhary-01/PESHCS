@@ -700,6 +700,7 @@ public class Main {
     public static void receiveMessage(Session user , String message) {
         if(message.equals("ping"))
             return;
+        System.out.println("Receieved message: " + message);
         ObjectMapper mapper = new ObjectMapper();
         Map<String , String> jsonReq = new HashMap<>();
         Connection connection = null;
