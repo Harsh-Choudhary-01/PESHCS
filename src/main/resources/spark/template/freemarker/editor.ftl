@@ -202,7 +202,6 @@
 				$('.outputContainer').text('');
 				if(editing)
 				{
-					console.log("Sending webSocket");
 					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
 				}
 				editing = false;

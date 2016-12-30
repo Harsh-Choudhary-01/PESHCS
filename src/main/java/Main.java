@@ -219,7 +219,7 @@ public class Main {
                         }
                     }
                     catch (Exception e) {
-                        System.out.println("Excception: " + e);
+                        System.out.println("Exception: " + e);
                     }
                     finally {
                         if(connection != null) try { connection.close(); } catch(SQLException e) {}
@@ -272,12 +272,10 @@ public class Main {
                             while(rs.next())
                             {
                                 classID = rs.getString(1);
-                                System.out.println("did rs");
                             }
                             if(classID.equals(""))
                                 attributes.put("joinedClass" , false);
                             else {
-                                System.out.println("joinedClass is true");
                                 attributes.put("joinedClass" , true);
                                 ArrayList<Object> assignments = new ArrayList<>();
                                 stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
@@ -397,7 +395,6 @@ public class Main {
                 user = (Map<String , Object>) user.get("claims");
                 try
                 {
-                    System.out.println(request.body());
                     jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
@@ -464,7 +461,6 @@ public class Main {
         });
 
         post("/class/:classID/:assignmentID" , (request , response) -> {
-            System.out.println("Doing post to not new");
             ObjectMapper mapper = new ObjectMapper();
             Map<String , Object> jsonReq = new HashMap<>();
             String classID = request.params(":classID");
@@ -693,14 +689,12 @@ public class Main {
             Optional<String> key = joinedUsers.keySet().stream().filter(k -> joinedUsers.get(k).equals(user)).findFirst();
             if(key.isPresent()) {
                 joinedUsers.remove(key.get());
-                System.out.println(key.get());
             }
         }
     }
     public static void receiveMessage(Session user , String message) {
         if(message.equals("ping"))
             return;
-        System.out.println("Receieved message: " + message);
         ObjectMapper mapper = new ObjectMapper();
         Map<String , String> jsonReq = new HashMap<>();
         Connection connection = null;
@@ -726,27 +720,22 @@ public class Main {
             }
             else if(jsonReq.get("type").equals("help"))
             {
-                System.out.println("Help working");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if(userInfo.containsKey("loggedIn"))
                 {
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     String userID = (String)userInfo.get("user_id");
-                    System.out.println("User requesting help: " + userID);
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID , studentName from students WHERE userID = '" + userID + "'");
                     if(rs.next())
                     {
-                        System.out.println("GOt student name and classID");
                         String studentName = rs.getString(2);
                         rs = stmt.executeQuery("SELECT ownerID from classes WHERE classID = '" + rs.getString(1) + "'");
                         if(rs.next())
                         {
-                            System.out.println("found teacher");
                             Session teacher = joinedUsers.get(rs.getString(1));
                             if(teacher!= null) {
-                                System.out.println("sending request to teacher");
                                 teacher.getRemote().sendString(String.valueOf(new JSONObject()
                                         .put("type", "help")
                                         .put("student", studentName)));
@@ -759,7 +748,6 @@ public class Main {
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
-                    System.out.println("Received request to edit");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
@@ -769,7 +757,6 @@ public class Main {
                         Session student = joinedUsers.get(jsonReq.get("id"));
                         if(student != null)
                         {
-                            System.out.println("Sending request to edit to student");
                             student.getRemote().sendString(String.valueOf(new JSONObject()
                                 .put("type" , "requestEdit")));
                         }
@@ -783,7 +770,6 @@ public class Main {
                 {
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
-                    System.out.println("Send code");
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + userInfo.get("user_id") + "'");
                     if(!rs.next())
@@ -791,11 +777,9 @@ public class Main {
                     rs = stmt.executeQuery("SELECT ownerID from classes WHERE classID = '" + rs.getString(1) + "'");
                     if(!rs.next())
                         return;
-                    System.out.println("Got id of teacher");
                     Session teacher = joinedUsers.get(rs.getString(1));
                     if(teacher != null)
                     {
-                        System.out.println("Sending code to teacher");
                         teacher.getRemote().sendString(String.valueOf(new JSONObject()
                             .put("code" , jsonReq.get("code"))
                             .put("type" , "editGranted")));
@@ -804,20 +788,16 @@ public class Main {
             }
             else if(jsonReq.get("type").equals("exitEdit"))
             {
-                System.out.println("Exit edit");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
-                    System.out.println("Logged in");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID from classes WHERE joinedStudents @> '{" + jsonReq.get("id") + "}' AND ownerID = '" + userInfo.get("user_id") + "'");
-                    System.out.println("Result set finished");
                     if(!rs.next())
                         return;
                     Session student = joinedUsers.get(jsonReq.get("id"));
-                    System.out.println("Student is : " + student.toString());
                     if(student != null)
                     {
                         student.getRemote().sendString(String.valueOf(new JSONObject()
