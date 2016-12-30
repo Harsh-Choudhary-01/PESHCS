@@ -107,9 +107,11 @@
 	<script src="../ace/src-min/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../ace/src-min/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
+		var webSocket;
+		var editor;
 		$(document).ready(function() {
 			ace.require("ace/ext/language_tools");
-			var editor = ace.edit("editor");
+			editor = ace.edit("editor");
 			editor.setTheme("ace/theme/twilight");
 			var JavaMode = ace.require("ace/mode/java").Mode;
 			editor.session.setMode(new JavaMode());
@@ -120,7 +122,7 @@
 			});
 			var currentStudent;
 			var editing = false;
-			var webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
+			webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
 			webSocket.onmessage = function(msg) {handleMessage(msg.data);};
 			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
 			window.setInterval(function() {
