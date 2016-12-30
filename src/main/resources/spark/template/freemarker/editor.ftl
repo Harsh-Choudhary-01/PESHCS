@@ -121,7 +121,7 @@
 			var currentStudent;
 			var editing = false;
 			var webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
-			webSocket.onmessage = function(msg) {handleMessage(msg);};
+			webSocket.onmessage = function(msg) {handleMessage(msg.data);};
 			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
 			window.setInterval(function() {
 				webSocket.send("ping");
@@ -219,9 +219,9 @@
 				alert("Request sent");
 			});
 		});
-		function handleMessage(message) {
+		function handleMessage(msg) {
 			console.log("Handling message: " + message);
-			console.log("Message is: " + JSON.stringify(message));
+			var message = JSON.parse(msg);
 			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
 				alert(message.student + " is asking for help.")
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
