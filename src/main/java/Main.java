@@ -803,16 +803,20 @@ public class Main {
             }
             else if(jsonReq.get("type").equals("exitEdit"))
             {
+                System.out.println("Exit edit");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
+                    System.out.println("Logged in");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID from classes WHERE joinedStudents @> '{" + jsonReq.get("id") + "}' AND ownerID = '" + userInfo.get("user_id") + "'");
+                    System.out.println("Result set finished");
                     if(!rs.next())
                         return;
                     Session student = joinedUsers.get(jsonReq.get("id"));
+                    System.out.println("Student is : " + student.toString());
                     if(student != null)
                     {
                         student.getRemote().sendString(String.valueOf(new JSONObject()
