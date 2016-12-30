@@ -85,19 +85,19 @@
 						<div id="editor"></div>
 					</div>
 					<div style="height: 600px;"></div>
-					<div class="inner editButtons">
-						<ul class="actions fit">
-							<li><a href="#" class="fit button special editCode">Edit Code</a></li>
-							<li><a href="#" class="fit button special compile">Run/Save</a></li>
-							<li><a href="#" class="fit button special exitEdit">Exit Editor</a></li>
-						</ul>
-						<h2>Enter Input For Program Here</h2>
-						<textarea class="stdin"></textarea>
-						<hr />
-						<h2>Output:</h2>
-						<pre><code class="outputContainer"></code></pre>
-					</div>
 				</section>
+				<div class="inner editorControls hidden">
+					<ul class="actions fit">
+						<li><a href="#" class="fit button special editCode">Edit Code</a></li>
+						<li><a href="#" class="fit button special compile">Run/Save</a></li>
+						<li><a href="#" class="fit button special exitEdit">Exit Editor</a></li>
+					</ul>
+					<h2>Enter Input For Program Here</h2>
+					<textarea class="stdin"></textarea>
+					<hr />
+					<h2>Output:</h2>
+					<pre><code class="outputContainer"></code></pre>
+				</div>
 			</#if>
 		</section>
 	</div>
