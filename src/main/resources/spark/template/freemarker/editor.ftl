@@ -226,8 +226,9 @@
 				alert(message.student + " is asking for help.")
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
 			{
+				var codeString = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				var codeMessage = {
-					"code" : encodeURIComponent(editor.getValue()).replace(/'/g, "%27") ,
+					"code" :  codeString ,
 					"type" : "sendCode" ,
 					"token" : localStorage.getItem("id_token")
 				};
