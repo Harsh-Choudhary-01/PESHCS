@@ -730,7 +730,7 @@ public class Main {
                 if(userInfo.containsKey("loggedIn"))
                 {
                     userInfo = (Map<String , Object>) userInfo.get("claims");
-                    String userID = (String)userInfo.get("claims");
+                    String userID = (String)userInfo.get("user_id");
                     System.out.println("User requesting help: " + userID);
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();

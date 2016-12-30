@@ -219,7 +219,6 @@
 		});
 		function handleMessage(msg) {
 			console.log("Handling message: " + msg);
-			var message = JSON.parse(msg);
 			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
 				alert(message.student + " is asking for help.")
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
