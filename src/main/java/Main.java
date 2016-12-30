@@ -163,8 +163,11 @@ public class Main {
                         if(!result)
                             halt(404 , "Page Not Found");
                         rs = stmt.executeQuery("SELECT ARRAY(SELECT unnest(progress[i:i][2:3])) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'"); //returns code and output stored
-                        if(rs.next())
-                            attributes.put("progress" , rs.getArray(1).getArray());
+                        if(rs.next()) {
+                            String[] progress = (String[]) rs.getArray(1).getArray();
+                            progress[1] = URLDecoder.decode(progress[1] , "UTF-8");
+                            attributes.put("progress" , progress);
+                        }
                         attributes.put("classID" , classID);
                     }
                     attributes.put("id" , assignmentID);
@@ -545,36 +548,79 @@ public class Main {
                 user = (Map<String , Object>) user.get("claims");
                 try
                 {
+                    String userID = (String) user.get("user_id");
                     jsonReq = mapper.readValue(request.body() , new TypeReference<Map<String , String>>(){});
+                    String role = (String)((Map<String , Object>)(getDynamicUser(userID).get("app_metadata"))).get("role");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    if(jsonReq.get("type").equals("save"))
-                    {
-                        ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
-                        if(rs.next())
-                        {
-                            int i = rs.getInt(1);
-                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
+                    if(role.equals("student")) {
+                        if (jsonReq.get("type").equals("save")) {
+                            ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                            if (rs.next()) {
+                                int i = rs.getInt(1);
+                                updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = '{{" + assignmentID + " , " + jsonReq.get("code") + " , No Output Please Run , N/A}}' WHERE userID = '" + user.get("user_id") + "'");
+                            }
+                            else
+                                updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
                         }
-                        else
-                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
+                        else if (jsonReq.get("type").equals("compile")) {
+                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), (String) user.get("user_id"));
+                            if (compiledInfo[0].equals("error"))
+                                return "error";
+                            ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                            if (rs.next()) {
+                                int i = rs.getInt(1);
+                                updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                            }
+                            else
+                                updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}') WHERE userID = '" + user.get("user_id") + "'");
+                            if (updated == 0)
+                                return compiledInfo[1] + "\nCould not save please try again or use save button";
+                            else
+                                return compiledInfo[1];
+                        }
                     }
-                    else if(jsonReq.get("type").equals("compile")) {
-                        String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), (String) user.get("user_id"));
-                        if(compiledInfo[0].equals("error"))
-                            return "error";
-                        ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
-                        if(rs.next())
-                        {
-                            int i = rs.getInt(1);
-                            updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":"  + i + "] = '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , " + URLEncoder.encode(compiledInfo[1] , "UTF-8") + " , " + compiledInfo[0] + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                    else {
+                        if (jsonReq.get("type").equals("compile")) {
+                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), jsonReq.get("id"));
+                            if (compiledInfo[0].equals("error"))
+                                return "error";
+                            ResultSet rs = stmt.executeQuery("SELECT classID FROM assignments WHERE ownerID = '" + userID + "' AND assignmentID = '" + assignmentID + "'");
+                            if(!rs.next())
+                                return "error";
+                            rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
+                            if (rs.next()) {
+                                int i = rs.getInt(1);
+                                updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
+                            }
+                            else
+                                updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}') WHERE studentID = '" + jsonReq.get("id") + "'");
+                            if (updated == 0)
+                                return compiledInfo[1] + "\nCould not save please try again or use save button";
+                            else
+                                return compiledInfo[1];
                         }
-                        else
-                            updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " +  jsonReq.get("code")  + " , " + URLEncoder.encode(compiledInfo[1] , "UTF-8") + " , " + compiledInfo[0] + "}}') WHERE userID = '" + user.get("user_id") + "'");
-                        if(updated == 0)
-                            return compiledInfo[1] + "\nCould not save please try again or use save button";
-                        else
-                            return compiledInfo[1];
+                        else if(jsonReq.get("type").equals("output"))
+                        {
+                            ResultSet rs = stmt.executeQuery("SELECT classID FROM assignments WHERE ownerID = '" + userID + "' AND assignmentID = '" + assignmentID + "'");
+                            if(!rs.next())
+                                return "error in retrieving output";
+                            rs = stmt.executeQuery("SELECT unnest(progress[i:i][3:3]) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
+                            if(rs.next())
+                                return URLDecoder.decode(rs.getString(1) , "UTF-8");
+                            else
+                                return "Student has no saved output yet";
+                        }
+                        else if(jsonReq.get("type").equals("code")) {
+                            ResultSet rs = stmt.executeQuery("SELECT classID FROM assignments WHERE ownerID = '" + userID + "' AND assignmentID = '" + assignmentID + "'");
+                            if(!rs.next())
+                                return "failure";
+                            rs = stmt.executeQuery("SELECT unnest(progress[i:i][2:2]) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
+                            if(!rs.next())
+                                return rs.getString(1);
+                            else
+                                return "Student has no saved code yet";
+                        }
                     }
                 }
                 catch (Exception e)
@@ -690,10 +736,74 @@ public class Main {
                         if(rs.next())
                         {
                             Session teacher = joinedUsers.get(rs.getString(1));
-                            teacher.getRemote().sendString(String.valueOf(new JSONObject()
-                            .put("type" , "help")
-                            .put("student" , studentName)));
+                            if(teacher!= null) {
+                                teacher.getRemote().sendString(String.valueOf(new JSONObject()
+                                        .put("type", "help")
+                                        .put("student", studentName)));
+                            }
                         }
+                    }
+                }
+            }
+            else if(jsonReq.get("type").equals("edit")) {
+                Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
+                if((Boolean) userInfo.get("loggedIn"))
+                {
+                    userInfo = (Map<String , Object>) userInfo.get("claims");
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT classID from classes WHERE joinedStudents @> '" + jsonReq.get("id") + "' AND ownerID = '" + userInfo.get("user_id") + "'");
+                    if(rs.next())
+                    {
+                        Session student = joinedUsers.get(jsonReq.get("id"));
+                        if(student != null)
+                        {
+                            student.getRemote().sendString(String.valueOf(new JSONObject()
+                                .put("type" , "requestEdit")));
+                        }
+                    }
+                }
+            }
+            else if(jsonReq.get("type").equals("sendCode"))
+            {
+                Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
+                if((Boolean) userInfo.get("loggedIn"))
+                {
+                    userInfo = (Map<String , Object>) userInfo.get("claims");
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + userInfo.get("user_id") + "'");
+                    if(!rs.next())
+                        return;
+                    rs = stmt.executeQuery("SELECT ownerID from classes WHERE classID = '" + rs.getString(1) + "'");
+                    if(!rs.next())
+                        return;
+                    Session teacher = joinedUsers.get(rs.getString(1));
+                    if(teacher != null)
+                    {
+                        teacher.getRemote().sendString(String.valueOf(new JSONObject()
+                            .put("code" , jsonReq.get("code"))
+                            .put("type" , "editGranted")));
+                    }
+                }
+            }
+            else if(jsonReq.get("type").equals("exitEdit"))
+            {
+                Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
+                if((Boolean) userInfo.get("loggedIn"))
+                {
+                    userInfo = (Map<String , Object>) userInfo.get("claims");
+                    connection = DatabaseUrl.extract().getConnection();
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT classID from classes WHERE joinedStudents @> '" + jsonReq.get("id") + "' AND ownerID = '" + userInfo.get("user_id") + "'");
+                    if(!rs.next())
+                        return;
+                    Session student = joinedUsers.get(jsonReq.get("id"));
+                    if(student != null)
+                    {
+                        student.getRemote().sendString(String.valueOf(new JSONObject()
+                                .put("code" , jsonReq.get("code"))
+                                .put("type" , "exitEdit")));
                     }
                 }
             }

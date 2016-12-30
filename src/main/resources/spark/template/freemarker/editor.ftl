@@ -34,7 +34,7 @@
 					<ul class="actions fit">
 						<li><a href="#" class="button special fit compile">Compile</a></li>
 						<li><a href="#" class="button special fit save">Save</a></li>
-						<li><a href="#" class="button special fit">Help</a></li>
+						<li><a href="#" class="button special fit reqHelp">Help</a></li>
 					</ul>
 				</div>
 				<div>
@@ -52,7 +52,7 @@
 				<div class="inner">
 					<h1 class="major">${assignment[0]}</h1>
 					<section>
-						<div class="outputArea hidden"></div>
+						<div class="outputArea hidden"><pre><code class="outputContainer"></code></pre><a href="#" class="hideOutput button special">Hide Output</a></div>
 						<h2>Students</h2>
 						<div class="table-wrapper">
 							<#if students?has_content>
@@ -80,15 +80,20 @@
 						</div>
 					</section>
 				</div>
-				<div>
-					<div id="editor" class="hidden"></div>
-				</div>
-				<div style="height: 600px;" class="hidden overlapper"></div>
-				<div class="inner hidden editButton">
+				<div class="editorControls hidden">
 					<div>
+						<div id="editor"></div>
+					</div>
+					<div style="height: 600px;"></div>
+					<div class="inner editButtons">
 						<ul class="actions fit">
-							<li><a href="#" class="fit button special editCode">Edit Student Code</a></li>
+							<li><a href="#" class="fit button special editCode">Edit Code</a></li>
+							<li><a href="#" class="fit button special compile">Run/Save</a></li>
+							<li><a href="#" class="fit button special exitEdit">Exit Editor</a></li>
 						</ul>
+						<h2>Enter Input For Program Here</h2>
+						<textarea class="stdin"></textarea>
+						<pre><code class="outputContainer"></code></pre>
 					</div>
 				</div>
 			</#if>
@@ -111,8 +116,17 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
+			var currentStudent;
+			var webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
+			webSocket.onmessage = function(msg) {handleMessage(msg);};
+			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
+			window.setInterval(function() {
+				webSocket.send("ping");
+			} , 20000);
 			if('${role}' === 'student')
 				editor.setValue(decodeURIComponent("${((progress[0])!assignment[2])!""}"));
+			if('${role}' === 'teacher')
+				editor.setReadOnly(true);
 			$(".save").click(function(e) {
 				e.preventDefault();
 				$.ajax({
@@ -134,13 +148,95 @@
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '"}' ,
 					success: function(data) {
 						$('.outputContainer').text(data);
 					}
 				});
 			});
+			$(".output").click(function(e) {
+				e.preventDefault();
+				var id = $(this).attr('id');
+				$.ajax({
+					url: "/assignment/${id}",
+					method: 'POST' ,
+					dataType: 'text' ,
+					data: '{"type" : "output" , "id" : "' + id + '"}' ,
+					success: function(data) {
+						$('.outputArea').removeClass('hidden');
+						$('.outputContainer').text(data);
+					}
+				});
+			});
+			$(".code").click(function(e) {
+				e.preventDefault();
+				var id = $(this).attr('id');
+				$.ajax({
+					url: "/assignment/${id}",
+					method: 'POST' ,
+					dataType: 'text' ,
+					data: '{"type" : "code" , "id" : "' + id + '"}' ,
+					success: function(data) {
+						if(data != 'failure') {
+							$('.editorControls').removeClass('hidden');
+							editor.setValue(decodeURIComponent(data));
+							currentStudent = id;
+						}
+						else if(data === 'Student has no saved code yet')
+						{
+							alert('Student has no saved code yet');
+						}
+						else {
+							alert("Could not retrieve code please try again");
+						}
+					}
+				});
+			});
+			$(".exitEdit").click(function(e) {
+				e.preventDefault();
+				if(!editor.getReadOnly)
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '"}');
+				$('.editorControls').addClass('hidden');
+			});
+			$(".editCode").click(function(e) {
+				webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
+				alert("Downloading newest version of student code");
+			});
+			$('.hideOutput').click(function(e) {
+				e.preventDefault();
+				$('.outputArea').addClass('hidden');
+				$('.outputContainer').text('');
+			});
+			$('.reqHelp').click(function(e) {
+				e.preventDefault();
+				webSocket.send('{"type" : "help" , "token" : "' + localStorage.getItem("id_token") + '"}');
+				alert("Request sent");
+			});
 		});
+		function handleMessage(msg) {
+			var message = JSON.parse(msg);
+			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
+				alert(message.student + " is asking for help.")
+			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
+			{
+				var codeMessage = {
+					"code" : encodeURIComponent(editor.getValue()).replace(/'/g, "%27") ,
+					"type" : "sendCode" ,
+					"token" : localStorage.getItem("id_token")
+				};
+				webSocket.send(JSON.stringify(codeMessage));
+				editor.setReadOnly(true);
+				alert("Teacher is locking code to edit");
+			}
+			else if(message.type === 'editGranted') { //called on teacher side once student has sent latest version of code
+				editor.setReadOnly(false);
+				editor.setValue(decodeURIComponent(message.code));
+			}
+			else if(message.type === 'exitEdit') { //called on student side once teacher exits editor for student
+				editor.setReadOnly(false);
+				editor.setValue(decodeURIComponent(message.code));
+			}
+		}
 	</script>
 </body>
 </html>
