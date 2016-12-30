@@ -202,7 +202,7 @@
 				$('.outputContainer').text('');
 				editing = false;
 				if(!editor.getReadOnly)
-					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '"}');
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
 				editor.setReadOnly(true);
 				$('.editorControls').addClass('hidden');
 			});
