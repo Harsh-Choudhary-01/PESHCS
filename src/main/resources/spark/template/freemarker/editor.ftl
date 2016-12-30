@@ -202,7 +202,8 @@
 				$('.outputContainer').text('');
 				editing = false;
 				if(!editor.getReadOnly)
-					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '"}');
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '"}');
+				editor.setReadOnly(true);
 				$('.editorControls').addClass('hidden');
 			});
 			$(".editCode").click(function(e) {
@@ -246,6 +247,7 @@
 			else if(message.type === 'exitEdit') { //called on student side once teacher exits editor for student
 				editor.setReadOnly(false);
 				editor.setValue(decodeURIComponent(message.code));
+				alert("Teacher has finished editing code");
 			}
 		}
 	</script>

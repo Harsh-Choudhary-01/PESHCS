@@ -758,7 +758,7 @@ public class Main {
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
-                    System.out.println("Receieved request to edit");
+                    System.out.println("Received request to edit");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
