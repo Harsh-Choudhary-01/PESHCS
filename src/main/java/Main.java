@@ -9,6 +9,7 @@ import static spark.Spark.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import spark.Request;
 import spark.template.freemarker.FreeMarkerEngine;
@@ -29,15 +30,25 @@ public class Main {
     private static String clientId = System.getenv("AUTH0_CLIENT_ID");
     private static String clientDomain = System.getenv("AUTH0_DOMAIN");
     private static String managementToken = System.getenv("AUTH0_MANAGE");
+    private static String managementID = System.getenv("MANAGE_ID");
+    private static final String managementSecret = System.getenv("MANAGE_SECRET");
     public static final String X_FORWARDED_PROTO = "x-forwarded-proto";
     static Map<String , Session> joinedUsers = new ConcurrentHashMap<>();
     public static void main(String[] args) {
-
         port(Integer.valueOf(System.getenv("PORT")));
         staticFileLocation("/spark/template/freemarker");
         webSocket("/socket", WebSocketHandler.class);
         SecureRandom random = new SecureRandom();
-
+        try {
+            HttpResponse<JsonNode> response = Unirest.post("https://app60836299.auth0.com/oauth/token")
+                    .header("content-type", "application/json")
+                    .body("{\"client_id\":\"" + managementID + "\",\"client_secret\":\"" + managementSecret + "\",\"audience\":\"https://app60836299.auth0.com/api/v2/\",\"grant_type\":\"client_credentials\"}")
+                    .asJson();
+            managementToken = response.getBody().getObject().getString("access_token");
+        }
+        catch(Exception e) {
+            System.out.println("Exception: " + e);
+        }
         get("/hello", (request, response) -> "Hello World");
 
         get("/class/:classID" , (request, response) -> {
