@@ -32,7 +32,7 @@
 				<div class="inner">
 					<h1 class="major">${assignment[0]}</h1>
 					<ul class="actions fit">
-						<li><a href="#" class="button special fit compile">Compile</a></li>
+						<li><a href="#" class="button special fit compile">Compile/Save</a></li>
 						<li><a href="#" class="button special fit save">Save</a></li>
 						<li><a href="#" class="button special fit reqHelp">Help</a></li>
 					</ul>
@@ -187,6 +187,11 @@
 							alert('Student has no saved code yet');
 						}
 						else if(data != 'failure') {
+							$('.outputContainer').text('');
+							if(editing)
+							{
+								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
+							}
 							editing = false;
 							editor.setReadOnly(true);
 							$('.editorControls').removeClass('hidden');
