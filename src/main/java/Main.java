@@ -96,7 +96,7 @@ public class Main {
                             joinedStudentsList.add(new String[]{rs.getString("studentName") , rs.getString("studentEmail")});
                         }
                         stmt.executeUpdate("CREATE TABLE IF NOT EXISTS assignments(name text , description text, code text , published text , classID text , ownerID text , assignmentID text)");
-                        rs = stmt.executeQuery("SELECT name , description , published , assignmentID FROM assignments WHERE ownerID = '" + user.get("user_id") + "'");
+                        rs = stmt.executeQuery("SELECT name , description , published , assignmentID FROM assignments WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                         while(rs.next())
                         {
                             assignments.add(new String[]{rs.getString(1) , rs.getString(2) , rs.getString(3) , rs.getString(4)});
