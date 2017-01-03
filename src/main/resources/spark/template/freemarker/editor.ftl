@@ -187,6 +187,8 @@
 							alert('Student has no saved code yet');
 						}
 						else if(data != 'failure') {
+							editing = false;
+							editor.setReadOnly(true);
 							$('.editorControls').removeClass('hidden');
 							editor.setValue(decodeURIComponent(data));
 							currentStudent = id;
@@ -209,9 +211,9 @@
 				$('.editorControls').addClass('hidden');
 			});
 			$(".editCode").click(function(e) {
+				e.preventDefault();
 				if(!editing)
 				{
-					e.preventDefault();
 					webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
 					alert("Downloading newest version of student code");
 				}
