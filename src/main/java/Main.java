@@ -722,7 +722,9 @@ public class Main {
                     String userID = (String)userInfo.get("user_id");
                     String role = (String)((Map<String , Object>)(getDynamicUser(userID).get("app_metadata"))).get("role");
                     if(role.equals("teacher")) {
-                        Map<String , Session> sessionID = new HashMap<String , Session>();
+                        Map<String , Session> sessionID = joinedUsers.get(userID);
+                        if(sessionID == null)
+                            sessionID = new HashMap<>();
                         sessionID.put(jsonReq.get("assignID") , user);
                         System.out.println(sessionID);
                         joinedUsers.put(userID, sessionID);
