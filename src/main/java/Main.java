@@ -736,7 +736,9 @@ public class Main {
                         Statement stmt = connection.createStatement();
                         ResultSet rs = stmt.executeQuery("SELECT studentID from students WHERE userID = '" + userID + "'");
                         if(rs.next()) {
-                            Map<String , Session> sessionID = new HashMap<String , Session>();
+                            Map<String , Session> sessionID = joinedUsers.get(userID);
+                            if(sessionID == null)
+                                sessionID = new HashMap<>();
                             sessionID.put(jsonReq.get("assignID") , user);
                             System.out.println(sessionID);
                             joinedUsers.put(rs.getString(1), sessionID);
