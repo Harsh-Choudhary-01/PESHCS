@@ -42,18 +42,18 @@
 				<div class="row uniform">
 					<#if published == "false">
 						<div class="6u 12u$(medium)">
-							<li><a href="#" class="button special fit" id="save">Save</a></li>
+							<a href="#" class="button special fit" id="save">Save</a>
 						</div>
 						<div class="6u 12u$(medium)">
-							<li><a href="#" class="button special fit" id="publish">Publish and Save</a></li>
+							<a href="#" class="button special fit" id="publish">Publish and Save</a>
 						</div>
 					<#else>
 						<div class="12u$">
-							<li><a href="#" class="button special fit" id="save">Save</a></li>
+							<a href="#" class="button special fit" id="save">Save</a>
 						</div>
 					</#if>
 					<div class="12u$">
-						<li><a href="/assignment/${id}" class="button special fit">Live View</a></li>
+						<a href="/assignment/${id}" class="button special fit">Live View</a>
 					</div>
 				</div>
 			</div>

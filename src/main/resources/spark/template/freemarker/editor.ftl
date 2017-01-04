@@ -33,7 +33,6 @@
 					<h1 class="major">${assignment[0]}</h1>
 					<ul class="actions fit">
 						<li><a href="#" class="button special fit compile">Compile/Save</a></li>
-						<li><a href="#" class="button special fit save">Save</a></li>
 						<li><a href="#" class="button special fit reqHelp">Help</a></li>
 					</ul>
 				</div>
@@ -45,8 +44,10 @@
 					<h2>Enter Input For Program Here</h2>
 					<textarea class="stdin"></textarea>
 					<hr />
-					<h2>Output:</h2>
-					<pre><code class="outputContainer">${(progress[1])!"No Output Yet"}</code></pre>	
+					<section id="output">
+						<h2>Output:</h2>
+						<pre><code class="outputContainer">${(progress[1])!"No Output Yet"}</code></pre>
+					</section>	
 				</div>
 			<#else>
 				<div class="inner">
@@ -124,7 +125,7 @@
 			var currentStudent;	
 			webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
 			webSocket.onmessage = function(msg) {handleMessage(msg.data);};
-			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '"}')};
+			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '" , "assignID" : "${id}"}')};
 			window.setInterval(function() {
 				webSocket.send("ping");
 			} , 20000);
@@ -132,29 +133,16 @@
 				editor.setValue(decodeURIComponent("${((progress[0])!assignment[2])!""}"));
 			if('${role}' === 'teacher')
 				editor.setReadOnly(true);
-			$(".save").click(function(e) {
-				e.preventDefault();
-				$.ajax({
-					url: "/assignment/${id}",
-					method: 'POST' ,
-					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "save"}' ,
-					success: function(data) {
-						if(data === 'success')
-							alert("Saved successfully");
-						else
-							alert("Could not save please try again");
-					}
-				});
-			});
 			$(".compile").click(function(e) {
 				e.preventDefault();
+				var stringData = 
 				$.ajax({
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '"}' ,
+					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
 					success: function(data) {
+						window.location.hash = "output"
 						$('.outputContainer').text(data);
 					}
 				});
@@ -190,7 +178,7 @@
 							$('.outputContainer').text('');
 							if(editing)
 							{
-								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
+								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "assignID" : "${id}"}');
 							}
 							editing = false;
 							editor.setReadOnly(true);
@@ -209,7 +197,7 @@
 				$('.outputContainer').text('');
 				if(editing)
 				{
-					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '"}');
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "assignID" : "${id}"}');
 				}
 				editing = false;
 				editor.setReadOnly(true);
@@ -219,7 +207,7 @@
 				e.preventDefault();
 				if(!editing)
 				{
-					webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '"}');
+					webSocket.send('{"type" : "edit" , "token" : "' + localStorage.getItem("id_token") + '" , "id" : "' + currentStudent + '" , "assignID" : "${id}"}');
 					alert("Downloading newest version of student code");
 				}
 			});
@@ -230,7 +218,7 @@
 			});
 			$('.reqHelp').click(function(e) {
 				e.preventDefault();
-				webSocket.send('{"type" : "help" , "token" : "' + localStorage.getItem("id_token") + '"}');
+				webSocket.send('{"type" : "help" , "token" : "' + localStorage.getItem("id_token") + '" , "assignID" : "${id}"}');
 				alert("Request sent");
 			});
 		});
@@ -238,14 +226,15 @@
 			console.log("Handling message: " + message);
 			var message = JSON.parse(msg);
 			if(message.type === 'help' && '${role}' === 'teacher') //called on teacher side when student requests help
-				alert(message.student + " is asking for help.")
+				alert(message.student + " is asking for help for assignment: " + message.assignment);
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
 			{
 				var codeString = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				var codeMessage = {
 					"code" :  codeString ,
 					"type" : "sendCode" ,
-					"token" : localStorage.getItem("id_token")
+					"token" : localStorage.getItem("id_token") ,
+					"assignID" : "${id}"
 				};
 				webSocket.send(JSON.stringify(codeMessage));
 				editor.setReadOnly(true);
