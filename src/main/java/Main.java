@@ -726,9 +726,7 @@ public class Main {
                         if(sessionID == null)
                             sessionID = new HashMap<>();
                         sessionID.put(jsonReq.get("assignID") , user);
-                        System.out.println(sessionID);
                         joinedUsers.put(userID, sessionID);
-                        System.out.println(joinedUsers);
                     }
                     else
                     {
@@ -740,9 +738,7 @@ public class Main {
                             if(sessionID == null)
                                 sessionID = new HashMap<>();
                             sessionID.put(jsonReq.get("assignID") , user);
-                            System.out.println(sessionID);
                             joinedUsers.put(rs.getString(1), sessionID);
-                            System.out.println(joinedUsers);
                         }
                     }
                 }
@@ -765,10 +761,8 @@ public class Main {
                         {
                             Session teacher = (Session)joinedUsers.get(rs.getString(1)).values().toArray()[0];
                             if(teacher!= null) {
-                                System.out.println("SELECT name from assignments WHERE assignmentID = '" + jsonReq.get("assignID") + "'");
                                 rs = stmt.executeQuery("SELECT name from assignments WHERE assignmentID = '" + jsonReq.get("assignID") + "'");
                                 rs.next();
-                                System.out.println(rs.getString(1));
                                 teacher.getRemote().sendString(String.valueOf(new JSONObject()
                                         .put("type", "help")
                                         .put("student", studentName)
@@ -789,16 +783,12 @@ public class Main {
                     if(rs.next())
                     {
                         Session student = joinedUsers.get(jsonReq.get("id")).get(jsonReq.get("assignID"));
-                        System.out.println(joinedUsers);
-                        System.out.println(student);
                         if(student != null)
                         {
-                            System.out.println("Student not null");
                             student.getRemote().sendString(String.valueOf(new JSONObject()
                                 .put("type" , "requestEdit")));
                         }
                         else {
-                            System.out.println("student null");
                             rs = stmt.executeQuery("SELECT unnest(progress[i:i][2:2]) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + jsonReq.get("assignID") + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
                             if(rs.next()) {
                                 user.getRemote().sendString(String.valueOf(new JSONObject()
@@ -834,7 +824,6 @@ public class Main {
             }
             else if(jsonReq.get("type").equals("exitEdit"))
             {
-                System.out.println("exit edit");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
