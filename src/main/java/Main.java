@@ -101,7 +101,7 @@ public class Main {
                     if(connection != null) try { connection.close(); } catch(SQLException e) {}
                 }
             }
-            if(classInfo.size() != 8)
+            if(classInfo.size() != 5)
                 halt(404 , "Page Not Found");
             else
                 attributes.put("class" , classInfo);
