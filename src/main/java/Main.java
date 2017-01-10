@@ -509,7 +509,7 @@ public class Main {
                         {
                             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
                             stmt.executeUpdate("INSERT INTO students(userID , classID , studentID , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + newID + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
-                            updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + jsonReq.get("student_id") + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
+                            updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + newID + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
                         }
                     }
                 }
