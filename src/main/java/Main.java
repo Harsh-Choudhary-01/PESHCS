@@ -504,13 +504,12 @@ public class Main {
                     if(jsonReq.get("updating").equals("join_class"))
                     {
                         String newID = new BigInteger(30, random).toString(32);
-                        ResultSet rs = stmt.executeQuery("SELECT a.* FROM classes a JOIN LATERAL generate_subscripts(a.invitedStudents , 1) i on a.invitedStudents[i:i] = '{{" + jsonReq.get("student_name") + " , " + newID + "}}' WHERE classID = '" + jsonReq.get("class_id") + "'");
-                        while(rs.next())
+                        ResultSet rs = stmt.executeQuery("SELECT className FROM classes WHERE classID = '" + jsonReq.get("class_id") + "'");
+                        if(rs.next())
                         {
                             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
                             stmt.executeUpdate("INSERT INTO students(userID , classID , studentID , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + newID + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
                             updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + jsonReq.get("student_id") + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
-                            break;
                         }
                     }
                 }
