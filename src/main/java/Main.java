@@ -355,7 +355,7 @@ public class Main {
                 {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS classes (classID text , className text, ownerID text , assignments text[] DEFAULT '{}', joinedStudents text[] DEFAULT '{}' , invitedStudents text[][] DEFAULT '{{null , null}}')");
+                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS classes (classID text , className text, ownerID text , assignments text[] DEFAULT '{}', joinedStudents text[] DEFAULT '{}')");
                     stmt.executeUpdate("INSERT INTO classes(classID , className, ownerID) VALUES ('" + classID + "' , 'New Class' , '" + claims.get("user_id") + "')");
                 }
                 catch (Exception e)
@@ -395,11 +395,6 @@ public class Main {
                     Statement stmt = connection.createStatement();
                     if(jsonReq.get("updating").equals("class_name"))
                         updated = stmt.executeUpdate("UPDATE classes SET className = '" + jsonReq.get("value") + "' WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
-                    if(jsonReq.get("updating").equals("new_invite"))
-                    {
-                        newID = new BigInteger(30, random).toString(32);
-                        updated = stmt.executeUpdate("UPDATE classes SET invitedStudents = array_cat(invitedStudents , ARRAY['" + jsonReq.get("value") + "' , '" + newID + "']) WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID +"'");
-                    }
                 }
                 catch (Exception e) {
                     System.out.println("Exception on post: " + e);
