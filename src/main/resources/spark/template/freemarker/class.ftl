@@ -30,7 +30,6 @@
 						Access Code: <code>${class.classID}</code><br>
 						Number of Assignments: ${class.assignLength}<br>
 						Joined Students: ${class.joinedLength}<br>
-						Invited Students: ${class.invitedLength}<br><hr />
 					</p>
 				</section>
 				<section>
@@ -43,28 +42,6 @@
 							<div class="12u$">
 								<ul class="actions">
 									<li><input type="submit" value="Update" class="special" /></li>
-								</ul>
-							</div>
-						</div>
-					</form>
-					<hr />
-				</section>
-				<section>
-					<h2>Invited Students</h2>
-					<ul class="alt js-inviteList">
-						<#list class.invitedStudents as invitedStudent>
-								<li>${invitedStudent[0]} | Student Code: <code>${invitedStudent[1]}</code></li>
-						</#list>
-					</ul>
-					<h3>Invite New Student</h3>
-					<form method="post" autocomplete="off" action="#" id="newStudent">
-						<div class="row uniform">
-							<div class="8u 12u$(medium)">
-								<input type="text" name="student-name" id="student_name" value="" placeholder="Student Name" />
-							</div>
-							<div class="4u 12u$(medium)">
-								<ul class="actions">
-									<li><input type="submit" value="Add Student" class="special"/></li>
 								</ul>
 							</div>
 						</div>
@@ -132,23 +109,6 @@
 							$('.js-name').text(data.name);
 							$('.headTitle').text(data.name);
 						}
-						else
-							return;
-					}
-				});
-			});
-			$('#newStudent').submit(function(e) {
-				e.preventDefault();
-				var stringData = '{"updating": "new_invite" , "value":"' + $('#student_name').val() + '"}';
-				$('#student_name').val('');
-				$.ajax({
-					url: window.location.href,
-					method: 'POST' ,
-					dataType: 'text json' ,
-					data: stringData ,
-					success: function(data) {
-						if(data.name != 'no_change')
-							$('.js-inviteList').append("<li>" + data.name + " | Student Code: <code>" + data.code + "</code></li>");
 						else
 							return;
 					}

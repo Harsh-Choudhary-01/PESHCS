@@ -57,9 +57,7 @@ public class Main {
             Map<String , Object> classInfo = new HashMap<>();
             Connection connection = null;
             Map<String , Object> user = getUser(request);
-            String[] joinedStudents = new String[0];
             boolean validClass = false;
-            List<String[]> invitedStudents = new ArrayList<>();
             List<String[]> joinedStudentsList = new ArrayList<>();
             if((Boolean) user.get("loggedIn")) {
                 user = (Map<String, Object>) user.get("claims");
@@ -67,24 +65,12 @@ public class Main {
                 {
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength , (cardinality(invitedStudents) / 2) - 1 AS invitedLength, invitedStudents , joinedStudents FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
+                    ResultSet rs = stmt.executeQuery("SELECT className, cardinality(assignments) AS assignLength FROM classes WHERE ownerID = '" + user.get("user_id") + "' AND classID = '" + classID + "'");
                     while (rs.next())
                     {
                         validClass = true;
                         classInfo.put("className", rs.getString(1));
                         classInfo.put("assignLength", rs.getInt("assignLength"));
-                        joinedStudents = (String[]) rs.getArray(6).getArray();
-                        String[][] tempInvitedStudents = (String[][]) rs.getArray(5).getArray();
-                        for (int i = 1; i < tempInvitedStudents.length; i++) //Starts from 1 to avoid placeholder null value
-                        {
-                            boolean studentJoined = false;
-                            for (int j = 0; j < joinedStudents.length; j++) {
-                                if (joinedStudents[j].equals(tempInvitedStudents[i][1]))
-                                    studentJoined = true;
-                            }
-                            if (!studentJoined)
-                                invitedStudents.add(tempInvitedStudents[i]);
-                        }
                     }
                     if (validClass)
                     {
@@ -103,8 +89,6 @@ public class Main {
                         }
                         classInfo.put("assignments" , assignments);
                     }
-                    classInfo.put("invitedStudents" , invitedStudents);
-                    classInfo.put("invitedLength" , invitedStudents.size());
                     classInfo.put("joinedLength", joinedStudentsList.size());
                     classInfo.put("joinedStudents" , joinedStudentsList);
                     classInfo.put("classID" , classID);
@@ -519,11 +503,12 @@ public class Main {
                     Statement stmt = connection.createStatement();
                     if(jsonReq.get("updating").equals("join_class"))
                     {
-                        ResultSet rs = stmt.executeQuery("SELECT a.* FROM classes a JOIN LATERAL generate_subscripts(a.invitedStudents , 1) i on a.invitedStudents[i:i] = '{{" + jsonReq.get("student_name") + " , " + jsonReq.get("student_id") + "}}' WHERE classID = '" + jsonReq.get("class_id") + "'");
+                        String newID = new BigInteger(30, random).toString(32);
+                        ResultSet rs = stmt.executeQuery("SELECT a.* FROM classes a JOIN LATERAL generate_subscripts(a.invitedStudents , 1) i on a.invitedStudents[i:i] = '{{" + jsonReq.get("student_name") + " , " + newID + "}}' WHERE classID = '" + jsonReq.get("class_id") + "'");
                         while(rs.next())
                         {
                             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS students(userID text , classID text, studentID text, studentName text , studentEmail text, progress text[][])");
-                            stmt.executeUpdate("INSERT INTO students(userID , classID , studentID , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + jsonReq.get("student_id") + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
+                            stmt.executeUpdate("INSERT INTO students(userID , classID , studentID , studentName , studentEmail) VALUES('" + user.get("user_id") + "' , '" + jsonReq.get("class_id") + "' , '" + newID + "' , '" + jsonReq.get("student_name") + "' , '" + user.get("email") + "')");
                             updated = stmt.executeUpdate("UPDATE classes SET joinedStudents = array_cat(joinedStudents , '{" + jsonReq.get("student_id") + "}') WHERE classID = '" + jsonReq.get("class_id") + "'");
                             break;
                         }

@@ -118,16 +118,13 @@
 											<h2>Join a Class</h2>
 											<form method="post" autocomplete="off" action="#" id="joinClass">
 												<div class="row uniform">
-													<div class="8u 12u$(medium)">
+													<div class="12u 12u$(medium)">
 														<input type="text" name="student_name" id="student_name" value="" placeholder="Student Name" />
 													</div>
-													<div class="4u 12u$(medium)">
+													<div class="6u 12u$(medium)">
 														<input type="text" name="class_id" id="class_id" value="" placeholder="Class Code" />
 													</div>
-													<div class="4u 12u$(medium)">
-														<input type="text" name="student_id" id="student_id" value="" placeholder="Student Code" />
-													</div>
-													<div class="4u 12u$(medium)">
+													<div class="6u 12u$(medium)">
 														<ul class="actions">
 															<li><input type="submit" value="Join Class" class="special"/></li>
 														</ul>
@@ -160,7 +157,7 @@
 			<footer id="footer" class="wrapper style1-alt">
 				<div class="inner">
 					<ul class="menu">
-						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+						<li>&copy; Harsh Choudhary</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
 					</ul>
 				</div>
 			</footer>
@@ -189,7 +186,7 @@
 		      {
 		      	$('#joinClass').submit(function(e) {
 					e.preventDefault();
-					var stringData = '{"updating": "join_class" , "student_name":"' + $('#student_name').val() + '" , "class_id" : "' + $('#class_id').val() + '" , "student_id" : "' + $('#student_id').val() + '"}';
+					var stringData = '{"updating": "join_class" , "student_name":"' + $('#student_name').val() + '" , "class_id" : "' + $('#class_id').val() + '"}';
 					$.ajax({
 						url: window.location.href,
 						method: 'POST' ,
