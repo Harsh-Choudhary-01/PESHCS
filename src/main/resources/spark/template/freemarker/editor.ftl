@@ -142,8 +142,8 @@
 					dataType: 'text' ,
 					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
 					success: function(data) {
-						window.location.hash = "output";
 						window.location.hash = '';
+						window.location.hash = "output";
 						$('.outputContainer').text(data);
 					}
 				});
