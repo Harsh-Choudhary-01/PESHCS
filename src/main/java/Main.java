@@ -773,7 +773,9 @@ public class Main {
                     if(rs.next())
                     {
                         System.out.println("found class");
-                        Session student = joinedUsers.get(jsonReq.get("id")).get(jsonReq.get("assignID"));
+                        Session student = null;
+                        if(joinedUsers.containsKey(jsonReq.get("id")))
+                            student = joinedUsers.get(jsonReq.get("id")).get(jsonReq.get("assignID"));
                         if(student != null)
                         {
                             System.out.println("not null sending request");
