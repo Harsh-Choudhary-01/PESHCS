@@ -11,12 +11,13 @@ public  class  WebSocketHandler {
     }
 
     @OnWebSocketClose
-    public void closed(Session session, int statusCode, String reason) {
+    public void onClose(Session session, int statusCode, String reason) {
+        System.out.println("Closed");
         Main.disconnectUser(session);
     }
 
     @OnWebSocketMessage
-    public void message(Session session, String message) throws IOException {
+    public void message(Session session, String message)  throws IOException {
         Main.receiveMessage(session , message);
     }
 }

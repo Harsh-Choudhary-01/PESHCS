@@ -678,6 +678,15 @@ public class Main {
         }
     }
     public static void disconnectUser(Session user) {
+        joinedUsers.values().forEach(map -> {
+            if(map.containsValue(user))
+            {
+                Optional<String> key = map.keySet().stream().filter(k -> map.get(k).equals(user)).findFirst();
+                if(key.isPresent()) {
+                    map.remove(key.get());
+                }
+            }
+        });
         if(joinedUsers.containsValue(user))
         {
             Optional<String> key = joinedUsers.keySet().stream().filter(k -> joinedUsers.get(k).equals(user)).findFirst();
