@@ -96,8 +96,10 @@
 					<h2>Enter Input For Program Here</h2>
 					<textarea class="stdin"></textarea>
 					<hr />
-					<h2>Output:</h2>
-					<pre><code class="outputContainer"></code></pre>
+					<section id="output">
+						<h2>Output:</h2>
+						<pre><code class="outputContainer"></code></pre>
+					</section>
 				</div>
 			</#if>
 		</section>

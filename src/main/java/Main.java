@@ -757,24 +757,30 @@ public class Main {
                 }
             }
             else if(jsonReq.get("type").equals("edit")) {
+                System.out.println("Editing");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
+                    System.out.println("Logged in");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID from classes WHERE joinedStudents @> '{" + jsonReq.get("id") + "}' AND ownerID = '" + userInfo.get("user_id") + "'");
                     if(rs.next())
                     {
+                        System.out.println("found class");
                         Session student = joinedUsers.get(jsonReq.get("id")).get(jsonReq.get("assignID"));
                         if(student != null)
                         {
+                            System.out.println("not null sending request");
                             student.getRemote().sendString(String.valueOf(new JSONObject()
                                 .put("type" , "requestEdit")));
                         }
                         else {
+                            System.out.println("null just getting progress");
                             rs = stmt.executeQuery("SELECT unnest(progress[i:i][2:2]) FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + jsonReq.get("assignID") + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
                             if(rs.next()) {
+                                System.out.println("rs is next for else student null");
                                 user.getRemote().sendString(String.valueOf(new JSONObject()
                                         .put("type", "editGranted")
                                         .put("code", rs.getString(1))));
@@ -785,21 +791,26 @@ public class Main {
             }
             else if(jsonReq.get("type").equals("sendCode"))
             {
+                System.out.println("sending code");
                 Map<String , Object> userInfo = checkToken(jsonReq.get("token"));
                 if((Boolean) userInfo.get("loggedIn"))
                 {
+                    System.out.println("logged in");
                     userInfo = (Map<String , Object>) userInfo.get("claims");
                     connection = DatabaseUrl.extract().getConnection();
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT classID from students WHERE userID = '" + userInfo.get("user_id") + "'");
                     if(!rs.next())
                         return;
+                    System.out.println("found class");
                     rs = stmt.executeQuery("SELECT ownerID from classes WHERE classID = '" + rs.getString(1) + "'");
                     if(!rs.next())
                         return;
+                    System.out.println("found ownerid");
                     Session teacher = joinedUsers.get(rs.getString(1)).get(jsonReq.get("assignID"));
                     if(teacher != null)
                     {
+                        System.out.println("teacher is not null");
                         teacher.getRemote().sendString(String.valueOf(new JSONObject()
                             .put("code" , jsonReq.get("code"))
                             .put("type" , "editGranted")));
