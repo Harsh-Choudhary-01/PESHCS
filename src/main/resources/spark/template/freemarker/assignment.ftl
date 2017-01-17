@@ -86,7 +86,7 @@
 						$(".classes").append('<li class="button fit special showClass" id="' + key + '">Show ' + decodeURIComponent(key) + '</li>');
 				}
 			}
-			$(".showClass").click(function() {
+			$(".showClass").click(function(e) {
 				e.preventDefault();
 				if(currentID != "")
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
