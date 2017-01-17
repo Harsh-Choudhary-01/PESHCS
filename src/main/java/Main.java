@@ -881,7 +881,7 @@ public class Main {
                 out = new BufferedWriter(new FileWriter(file));
                 out.write(classCode);
                 out.close();
-                pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/" + className + ".java");
+                pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + className + ".java");
                 compileProcess = pb.start();
                 stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
                 String temp;
@@ -901,7 +901,7 @@ public class Main {
             out = new BufferedWriter(new FileWriter(file));
             out.write(classCode);
             out.close();
-            pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/" + decodedMainClass + ".java");
+            pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
             compileProcess = pb.start();
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String temp;
