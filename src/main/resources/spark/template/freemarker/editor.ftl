@@ -146,7 +146,7 @@
 					for (var key in codeData) {
 						if(codeData.hasOwnProperty(key)) {
 							if(key != "mainClass")
-								$(".classes").append('<li class="button fit special showClass" id="' + codeData[key] + '">Show ' + decodeURIComponent(codeData[key]) + '</li>');
+								$(".classes").append('<li class="button fit special showClass" id="' + key + '">Show ' + decodeURIComponent(key) + '</li>');
 						}
 					}
 				}
@@ -222,7 +222,7 @@
 											mainCode = codeData[key];
 											currentID = key;
 										}
-										$(".classes").append('<li class="button fit special showClass" id="' + codeData[key] + '">Show ' + decodeURIComponent(codeData[key]) + '</li>');
+										$(".classes").append('<li class="button fit special showClass" id="' + key + '">Show ' + decodeURIComponent(key) + '</li>');
 									}
 								}
 							}
