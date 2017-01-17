@@ -33,9 +33,10 @@
 				<h1 class="major">${name}</h1>
 				<h3>Description:</h3>
 				<p>${description}</p>
+				<ul class="actions fit classes"></ul>
 			</div>
 			<div>
-				<div id="editor">//Enter starting code here</div>
+				<div id="editor" class="hidden">//Enter starting code here</div>
 			</div>
 			<div style="height: 600px;"></div>
 			<div class="inner">
@@ -70,19 +71,37 @@
 			var editor = ace.edit("editor");
 			editor.setTheme("ace/theme/twilight");
 			var JavaMode = ace.require("ace/mode/java").Mode;
+			var currentID = "";
 			editor.session.setMode(new JavaMode());
 			editor.setOptions({
 			    enableBasicAutocompletion: true,
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			editor.setValue(decodeURIComponent("${code}"));
+			var codeData = JSON.parse("${code}");
+			for (var key in codeData) {
+				if(codeData.hasOwnProperty(key)) {
+					if(key != "mainClass")
+						$(".classes").append('<li class="button fit special showClass" id="' + codeData[key] + '">Show ' + decodeURIComponent(codeData[key]) + '</li>');
+				}
+			}
+			$(".showClass").click(function() {
+				e.preventDefault();
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
+				currentID = $(this).attr('id');
+				$("#editor").removeClass("hidden");
+			});
+
 			$("#save").click(function() {
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				$.ajax({
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "publish" : "false"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "publish" : "false"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Saved successfully");
@@ -96,7 +115,7 @@
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "publish" : "true"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "publish" : "true"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Published successfully");

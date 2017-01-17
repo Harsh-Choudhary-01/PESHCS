@@ -41,9 +41,22 @@
 						</div>
 					</div>
 				</form>
+				<hr />
+				<h3>Create Class</h3>
+				<div class="row uniform">
+					<div class="6u 12u$">
+						<input type="text" name="class_name" id="class_name" value="" placeholder="Main Class Name" />
+					</div>
+					<div class="6u 12u$">
+						<ul>
+							<li><input type="submit" name="submit" class="special createClass">Create</li>
+						</ul>
+					</div>
+				</div>
+				<ul class="actions fit classes"></ul>
 			</div>
 			<div>
-				<div id="editor">//Enter starting code here</div>
+				<div id="editor" class="hidden">//Enter starting code here</div>
 			</div>
 			<div style="height: 600px;"></div>
 			<div class="inner">
@@ -74,7 +87,27 @@
 		    enableSnippets: false,
         	enableLiveAutocompletion: true
 		});
+		var currentID = "";
+		var codeData = {};
 		$(document).ready(function() {
+			$(".createClass").click(function(e) {
+				e.preventDefault();
+				var className = encodeURIComponent($("#class_name").val());
+				var mainClass = false;
+				if($(".classes li").length == 0)
+					mainClass = true;
+				$(".classes").append('<li class="button fit special showClass" id="' + className + '">Show ' + $("#class_name").val() + '</li>');
+				var newCode = generateCode(mainClass , className);
+				codeData[className] = newCode;
+				if(mainClass)
+					codeData["mainClass"] = className;
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				currentID = className;
+				editor.setValue(decodeURIComponent(newCode));
+				$("#class_name").attr("placeholder" , "Add Class");
+				$("#editor").removeClass("hidden");
+			});
 			$("#newAssignment").submit(function() {
 				createAssignment(false);
 			});
@@ -84,11 +117,18 @@
 			$("#createPublish").click(function() {
 				createAssignment(true);
 			});
+			$(".showClass").click(function(e) {
+				e.preventDefault();
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
+				currentID = $(this).attr('id');
+			});
 		});
 		function createAssignment(isPublish)
 		{
-			var code = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
-			var stringData = '{"name" : "' + $("#assignment_name").val() + '" , "description" : "' + $("#assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + code + '"}';
+			codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+			var stringData = '{"name" : "' + $("#assignment_name").val() + '" , "description" : "' + $("#assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '"}';
 			$.ajax({
 				url: "/class/${class.classID}/new",
 				method: 'POST' ,
@@ -103,6 +143,12 @@
 						return;
 				}
 			});
+		}
+		function generateCode(isMain , className) {
+			if(isMain)
+				return "public%20class%20" + className + "%20%7B%0A%20%20%20%20public%20static%20void%20main(String%5B%5D%20args)%20%7B%0A%20%20%20%20%20%20%20%20%2F%2FEnter%20starting%20code%20here%0A%20%20%20%20%7D%0A%7D";
+			else
+				return "public%20class%20" + className  + "%20%7B%0A%20%20%20%20%2F%2FEnter%20starting%20code%20here%0A%7D";
 		}
 	</script>
 </body>

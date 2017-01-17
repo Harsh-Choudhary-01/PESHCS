@@ -31,13 +31,14 @@
 			<#if role == "student">
 				<div class="inner">
 					<h1 class="major">${assignment[0]}</h1>
+					<ul class="actions fit classes"></ul>
 					<ul class="actions fit">
 						<li><a href="#" class="button special fit compile">Compile/Save</a></li>
 						<li><a href="#" class="button special fit reqHelp">Help</a></li>
 					</ul>
 				</div>
 				<div>
-					<div id="editor"></div>
+					<div id="editor" class="hidden"></div>
 				</div>
 				<div style="height: 600px;"></div>
 				<div class="inner">
@@ -81,6 +82,9 @@
 						</div>
 					</section>
 				</div>
+				<div class="inner editorControls hidden">
+					<ul class="actions fit classes"></ul>
+				</div>
 				<section class="editorControls hidden">
 					<div>
 						<div id="editor"></div>
@@ -113,6 +117,8 @@
 		var webSocket;
 		var editor;
 		var editing = false;
+		var codeData;
+		var currentID = "";
 		$(document).ready(function() {
 			ace.require("ace/ext/language_tools");
 			editor = ace.edit("editor");
@@ -124,7 +130,7 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			var currentStudent;	
+			var currentStudent;
 			webSocket = new WebSocket("wss://peshcsharden.herokuapp.com/socket");
 			webSocket.onmessage = function(msg) {handleMessage(msg.data);};
 			webSocket.onopen = function(event) {webSocket.send('{"type" : "auth" , "token" : "' + localStorage.getItem("id_token") + '" , "assignID" : "${id}"}')};
@@ -132,17 +138,38 @@
 				webSocket.send("ping");
 			} , 20000);
 			if('${role}' === 'student')
-				editor.setValue(decodeURIComponent("${((progress[0])!assignment[2])!""}"));
+			{
+				var codeString = "${((progress[0])!assignment[2])!""}";
+				if(codeString != "")
+				{
+					codeData = JSON.parse(codeString);
+					for (var key in codeData) {
+						if(codeData.hasOwnProperty(key)) {
+							if(key != "mainClass")
+								$(".classes").append('<li class="button fit special showClass" id="' + codeData[key] + '">Show ' + decodeURIComponent(codeData[key]) + '</li>');
+						}
+					}
+				}
+			}
 			if('${role}' === 'teacher')
 				editor.setReadOnly(true);
+			$(".showClass").click(function(e) {
+				e.preventDefault();
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
+				currentID = $(this).attr('id');
+				$("#editor").removeClass("hidden");
+			});
 			$(".compile").click(function(e) {
 				e.preventDefault();
-				var stringData = 
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				$.ajax({
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
 					success: function(data) {
 						window.location.hash = '';
 						window.location.hash = "output";
@@ -181,12 +208,26 @@
 							$('.outputContainer').text('');
 							if(editing)
 							{
-								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "assignID" : "${id}"}');
+								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "assignID" : "${id}"}');
 							}
 							editing = false;
 							editor.setReadOnly(true);
+							codeData = JSON.parse(data);
+							var mainCode = "";
+							for (var key in codeData) {
+								if(codeData.hasOwnProperty(key)) {
+									if(key != "mainClass") {
+										if((".classes li").length == 0)
+										{
+											mainCode = codeData[key];
+											currentID = key;
+										}
+										$(".classes").append('<li class="button fit special showClass" id="' + codeData[key] + '">Show ' + decodeURIComponent(codeData[key]) + '</li>');
+									}
+								}
+							}
 							$('.editorControls').removeClass('hidden');
-							editor.setValue(decodeURIComponent(data));
+							editor.setValue(decodeURIComponent(mainCode));
 							currentStudent = id;
 						}
 						else {
@@ -197,10 +238,12 @@
 			});
 			$(".exitEdit").click(function(e) {
 				e.preventDefault();
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				$('.outputContainer').text('');
 				if(editing)
 				{
-					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + encodeURIComponent(editor.getValue()).replace(/'/g, "%27") + '" , "assignID" : "${id}"}');
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "assignID" : "${id}"}');
 				}
 				editing = false;
 				editor.setReadOnly(true);
@@ -232,7 +275,9 @@
 				alert(message.student + " is asking for help for assignment: " + message.assignment);
 			else if(message.type === 'requestEdit') //called on student side when teacher requests to edit
 			{
-				var codeString = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				if(currentID != "")
+					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				var codeString = JSON.stringify(codeData).replace(/"/g , '\"');
 				var codeMessage = {
 					"code" :  codeString ,
 					"type" : "sendCode" ,
@@ -246,11 +291,19 @@
 			else if(message.type === 'editGranted') { //called on teacher side once student has sent latest version of code
 				editing = true;
 				editor.setReadOnly(false);
-				editor.setValue(decodeURIComponent(message.code));
+				codeData = JSON.parse(message.code);
+				if(currentID != "")
+					editor.setValue(decodeURIComponent(codeData[currentID]));
+				else
+					editor.setValue("//Please click one of the show class buttons");
 			}
 			else if(message.type === 'exitEdit') { //called on student side once teacher exits editor for student
 				editor.setReadOnly(false);
-				editor.setValue(decodeURIComponent(message.code));
+				codeData = JSON.parse(message.code);
+				if(currentID != "")
+					editor.setValue(decodeURIComponent(codeData[currentID]));
+				else
+					editor.setValue("//Please click one of the show class buttons");
 				alert("Teacher has finished editing code");
 			}
 		}

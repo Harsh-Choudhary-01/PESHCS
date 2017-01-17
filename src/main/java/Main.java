@@ -243,6 +243,7 @@ public class Main {
                         if (((Map<String, Object>) metadata.get("app_metadata")).get("role").equals("teacher")) {
                             connection = DatabaseUrl.extract().getConnection();
                             Statement stmt = connection.createStatement();
+                            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS classes (classID text , className text, ownerID text , assignments text[] DEFAULT '{}', joinedStudents text[] DEFAULT '{}')");
                             ResultSet rs = stmt.executeQuery("SELECT className , classID , cardinality(assignments) AS assignLength , cardinality(joinedStudents) AS joinedLength FROM classes WHERE ownerID = '" + ((Map<String, Object>)attributes.get("user")).get("user_id") + "'");
                             ArrayList<Object> classes = new ArrayList<>();
                             while(rs.next())
@@ -858,31 +859,45 @@ public class Main {
         BufferedWriter out = null;
         Process runProcess = null;
         Process compileProcess;
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String , String> code;
         try {
-            String code = URLDecoder.decode(encodedCode , "UTF-8");
+            code = mapper.readValue(encodedCode , new TypeReference<Map<String , String>>(){});
+            String mainClass = code.get("mainClass");
             String input = URLDecoder.decode(encodedInput , "UTF-8");
-            File file = new File(userID + "/Main.java");
-            file.getParentFile().mkdirs();
-            out = new BufferedWriter(new FileWriter(file));
-            out.write(code);
-            out.close();
-            ProcessBuilder pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/Main.java");
-            compileProcess = pb.start();
-            stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
+            Iterator it = code.entrySet().iterator();
+            ProcessBuilder pb;
             String output = "";
-            String temp;
-            while((temp = stdOutput.readLine()) != null)
+            while(it.hasNext())
             {
-                if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
-                    output += temp;
-                    output += "\n";
+                Map.Entry pair = (Map.Entry)it.next();
+                if(((String)pair.getKey()).equals("mainClass"))
+                    continue;
+                String classCode = URLDecoder.decode((String)pair.getValue() , "UTF-8");
+                String className = (String)pair.getKey();
+                File file = new File(userID + "/" + className + ".java");
+                file.getParentFile().mkdirs();
+                out = new BufferedWriter(new FileWriter(file));
+                out.write(classCode);
+                out.close();
+                pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/" + className + ".java");
+                compileProcess = pb.start();
+                stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
+                String temp;
+                while((temp = stdOutput.readLine()) != null)
+                {
+                    if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
+                        output += temp;
+                        output += "\n";
+                    }
                 }
+                if(!output.equals(""))
+                    return new String[] {"No" , output};
+                compileProcess.destroy();
+                compileProcess.waitFor();
             }
-            if(!output.equals(""))
-                return new String[] {"No" , output};
-            compileProcess.destroy();
-            compileProcess.waitFor();
-            pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , "Main");
+
+            pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , mainClass);
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();
