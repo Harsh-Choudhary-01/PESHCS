@@ -863,7 +863,8 @@ public class Main {
         Map<String , String> code;
         try {
             code = mapper.readValue(encodedCode.replaceAll("q\\$" , "\"") , new TypeReference<Map<String , String>>(){});
-            String mainClass = URLDecoder.decode(code.get("mainClass") , "UTF-8");
+            String decodedMainClass = URLDecoder.decode(code.get("mainClass") , "UTF-8");
+            String mainClass = code.get("mainClass");
             String input = URLDecoder.decode(encodedInput , "UTF-8");
             Iterator it = code.entrySet().iterator();
             ProcessBuilder pb;
@@ -871,7 +872,7 @@ public class Main {
             while(it.hasNext()) //TODO: decode q$ into " and then do the compiling , make sure to compile file name decoded
             {
                 Map.Entry pair = (Map.Entry)it.next();
-                if((pair.getKey()).equals("mainClass"))
+                if((pair.getKey()).equals("mainClass") || pair.getKey().equals(code.get("mainClass")))
                     continue;
                 String classCode = URLDecoder.decode((String)pair.getValue() , "UTF-8");
                 String className = URLDecoder.decode((String)pair.getKey() , "UTF-8");
@@ -891,13 +892,31 @@ public class Main {
                         output += "\n";
                     }
                 }
-                if(!output.equals(""))
-                    return new String[] {"No" , output};
                 compileProcess.destroy();
                 compileProcess.waitFor();
             }
-
-            pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , mainClass);
+            String classCode = URLDecoder.decode((String)code.get(mainClass) , "UTF-8");
+            File file = new File(userID + "/" + decodedMainClass + ".java");
+            file.getParentFile().mkdirs();
+            out = new BufferedWriter(new FileWriter(file));
+            out.write(classCode);
+            out.close();
+            pb = new ProcessBuilder("/app/.jdk/bin/javac" , userID + "/" + decodedMainClass + ".java");
+            compileProcess = pb.start();
+            stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
+            String temp;
+            while((temp = stdOutput.readLine()) != null)
+            {
+                if(!temp.equals("Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8")) {
+                    output += temp;
+                    output += "\n";
+                }
+            }
+            compileProcess.destroy();
+            compileProcess.waitFor();
+            if(!output.equals(""))
+                return new String[] {"No" , output};
+            pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , decodedMainClass);
             pb.redirectErrorStream(true);
             Map<String , String> env = pb.environment();
             env.clear();

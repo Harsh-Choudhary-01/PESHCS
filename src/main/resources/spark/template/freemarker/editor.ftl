@@ -214,14 +214,12 @@
 							editor.setReadOnly(true);
 							codeData = JSON.parse(data.replace(/q\$/g, '"'));
 							var mainCode = "";
+							$(".classes li").remove();
+							currentID = codeData.mainClass;
+							mainCode = codeData[currentID];
 							for (var key in codeData) {
 								if(codeData.hasOwnProperty(key)) {
 									if(key != "mainClass") {
-										if((".classes li").length == 0)
-										{
-											mainCode = codeData[key];
-											currentID = key;
-										}
 										$(".classes").append('<li class="button fit special showClass" id="' + key + '">Show ' + decodeURIComponent(key) + '</li>');
 									}
 								}
