@@ -142,7 +142,7 @@
 				var codeString = "${((progress[0])!assignment[2])!""}";
 				if(codeString != "")
 				{
-					codeData = JSON.parse(codeString);
+					codeData = JSON.parse(codeString.replace(/q\$/g, '"'));
 					for (var key in codeData) {
 						if(codeData.hasOwnProperty(key)) {
 							if(key != "mainClass")
@@ -169,7 +169,7 @@
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
 					success: function(data) {
 						window.location.hash = '';
 						window.location.hash = "output";
@@ -208,11 +208,11 @@
 							$('.outputContainer').text('');
 							if(editing)
 							{
-								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "assignID" : "${id}"}');
+								webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "assignID" : "${id}"}');
 							}
 							editing = false;
 							editor.setReadOnly(true);
-							codeData = JSON.parse(data);
+							codeData = JSON.parse(data.replace(/q\$/g, '"'));
 							var mainCode = "";
 							for (var key in codeData) {
 								if(codeData.hasOwnProperty(key)) {
@@ -243,7 +243,7 @@
 				$('.outputContainer').text('');
 				if(editing)
 				{
-					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "assignID" : "${id}"}');
+					webSocket.send('{"type" : "exitEdit" , "id" : "' + currentStudent + '" , "token" : "' +  localStorage.getItem("id_token")  + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "assignID" : "${id}"}');
 				}
 				editing = false;
 				editor.setReadOnly(true);
@@ -277,7 +277,7 @@
 			{
 				if(currentID != "")
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
-				var codeString = JSON.stringify(codeData).replace(/"/g , '\"');
+				var codeString = JSON.stringify(codeData).replace(/"/g , 'q$');
 				var codeMessage = {
 					"code" :  codeString ,
 					"type" : "sendCode" ,
@@ -291,7 +291,7 @@
 			else if(message.type === 'editGranted') { //called on teacher side once student has sent latest version of code
 				editing = true;
 				editor.setReadOnly(false);
-				codeData = JSON.parse(message.code);
+				codeData = JSON.parse(message.code.replace(/q\$/g, '"'));
 				if(currentID != "")
 					editor.setValue(decodeURIComponent(codeData[currentID]));
 				else
@@ -299,7 +299,7 @@
 			}
 			else if(message.type === 'exitEdit') { //called on student side once teacher exits editor for student
 				editor.setReadOnly(false);
-				codeData = JSON.parse(message.code);
+				codeData = JSON.parse(message.code.replace(/q\$/g, '"'));
 				if(currentID != "")
 					editor.setValue(decodeURIComponent(codeData[currentID]));
 				else

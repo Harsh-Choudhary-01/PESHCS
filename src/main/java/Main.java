@@ -862,19 +862,19 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper();
         Map<String , String> code;
         try {
-            code = mapper.readValue(encodedCode , new TypeReference<Map<String , String>>(){});
-            String mainClass = code.get("mainClass");
+            code = mapper.readValue(encodedCode.replaceAll("q$" , "\"") , new TypeReference<Map<String , String>>(){});
+            String mainClass = URLDecoder.decode(code.get("mainClass") , "UTF-8");
             String input = URLDecoder.decode(encodedInput , "UTF-8");
             Iterator it = code.entrySet().iterator();
             ProcessBuilder pb;
             String output = "";
-            while(it.hasNext())
+            while(it.hasNext()) //TODO: decode q$ into " and then do the compiling , make sure to compile file name decoded
             {
                 Map.Entry pair = (Map.Entry)it.next();
-                if(((String)pair.getKey()).equals("mainClass"))
+                if((pair.getKey()).equals("mainClass"))
                     continue;
                 String classCode = URLDecoder.decode((String)pair.getValue() , "UTF-8");
-                String className = (String)pair.getKey();
+                String className = URLDecoder.decode((String)pair.getKey() , "UTF-8");
                 File file = new File(userID + "/" + className + ".java");
                 file.getParentFile().mkdirs();
                 out = new BufferedWriter(new FileWriter(file));

@@ -78,7 +78,8 @@
 			    enableSnippets: false,
 	        	enableLiveAutocompletion: true
 			});
-			var codeData = JSON.parse("${code}");
+			var codeString = "${code}";
+			var codeData = JSON.parse(codeString.replace(/q\$/g, '"'));
 			for (var key in codeData) {
 				if(codeData.hasOwnProperty(key)) {
 					if(key != "mainClass")
@@ -101,7 +102,7 @@
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "publish" : "false"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "publish" : "false"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Saved successfully");
@@ -115,7 +116,7 @@
 					url: window.location.href,
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '" , "publish" : "true"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "publish" : "true"}' ,
 					success: function(data) {
 						if(data === 'success')
 							alert("Published successfully");

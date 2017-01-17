@@ -48,11 +48,10 @@
 						<input type="text" name="class_name" id="class_name" value="" placeholder="Main Class Name" />
 					</div>
 					<div class="6u 12u$">
-						<ul>
-							<li><input type="submit" name="submit" class="special createClass">Create</li>
-						</ul>
+						<a href="#" class="button special fit createClass">Create</a>
 					</div>
 				</div>
+				<hr />
 				<ul class="actions fit classes"></ul>
 			</div>
 			<div>
@@ -106,6 +105,7 @@
 				currentID = className;
 				editor.setValue(decodeURIComponent(newCode));
 				$("#class_name").attr("placeholder" , "Add Class");
+				$("#class_name").val('');
 				$("#editor").removeClass("hidden");
 			});
 			$("#newAssignment").submit(function() {
@@ -118,17 +118,24 @@
 				createAssignment(true);
 			});
 			$(".showClass").click(function(e) {
+				console.log("Clicked show class");
 				e.preventDefault();
 				if(currentID != "")
+				{
+					console.log("Current ID before: " + currentID);
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				}
 				editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
 				currentID = $(this).attr('id');
+				console.log("Stuff setting editor to: " + decodeURIComponent(codeData[$(this).attr('id')]));
+				console.log("Current ID after: " + currentID);
 			});
 		});
 		function createAssignment(isPublish)
 		{
-			codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
-			var stringData = '{"name" : "' + $("#assignment_name").val() + '" , "description" : "' + $("#assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , '\"') + '"}';
+			if(currentID != "")
+				codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+			var stringData = '{"name" : "' + $("#assignment_name").val() + '" , "description" : "' + $("#assignment_description").val() + '" , "publish" : "' + isPublish + '" , "code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '"}';
 			$.ajax({
 				url: "/class/${class.classID}/new",
 				method: 'POST' ,
