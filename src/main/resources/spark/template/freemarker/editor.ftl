@@ -226,6 +226,19 @@
 									}
 								}
 							}
+							$(".showClass").click(function(e) {
+								console.log("Clicked show class");
+								e.preventDefault();
+								if(currentID != "")
+								{
+									console.log("Current ID before: " + currentID);
+									codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+								}
+								editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
+								currentID = $(this).attr('id');
+								console.log("Stuff setting editor to: " + decodeURIComponent(codeData[$(this).attr('id')]));
+								console.log("Current ID after: " + currentID);
+							});
 							$('.editorControls').removeClass('hidden');
 							editor.setValue(decodeURIComponent(mainCode));
 							currentStudent = id;

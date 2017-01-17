@@ -96,6 +96,19 @@
 				if($(".classes li").length == 0)
 					mainClass = true;
 				$(".classes").append('<li class="button fit special showClass" id="' + className + '">Show ' + $("#class_name").val() + '</li>');
+				$(".showClass").click(function(e) {
+					console.log("Clicked show class");
+					e.preventDefault();
+					if(currentID != "")
+					{
+						console.log("Current ID before: " + currentID);
+						codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+					}
+					editor.setValue(decodeURIComponent(codeData[$(this).attr('id')]));
+					currentID = $(this).attr('id');
+					console.log("Stuff setting editor to: " + decodeURIComponent(codeData[$(this).attr('id')]));
+					console.log("Current ID after: " + currentID);
+				});
 				var newCode = generateCode(mainClass , className);
 				codeData[className] = newCode;
 				if(mainClass)
