@@ -557,10 +557,10 @@ public class Main {
                             ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
                             if (rs.next()) {
                                 int i = rs.getInt(1);
-                                updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}' WHERE userID = '" + user.get("user_id") + "'");
+                                updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = ARRAY[['" + assignmentID + "' , '" + jsonReq.get("code") + "' , '" + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + "' , '" + compiledInfo[0] + "']] WHERE userID = '" + user.get("user_id") + "'");
                             }
                             else
-                                updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + " , " + compiledInfo[0] + "}}') WHERE userID = '" + user.get("user_id") + "'");
+                                updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , ARRAY[['" + assignmentID + "' , '" + jsonReq.get("code") + "' , '" + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + "' , '" + compiledInfo[0] + "']]) WHERE userID = '" + user.get("user_id") + "'");
                             if (updated == 0)
                                 return compiledInfo[1] + "\nCould not save please try again or use save button";
                             else
@@ -579,9 +579,9 @@ public class Main {
                                 rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
                                 if (rs.next()) {
                                     int i = rs.getInt(1);
-                                    updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'", "%27") + " , " + compiledInfo[0] + "}}' WHERE studentID = '" + jsonReq.get("id") + "'");
+                                    updated = stmt.executeUpdate("UPDATE students SET progress[" + i + ":" + i + "] = ARRAY[['" + assignmentID + "' , '" + jsonReq.get("code") + "' , '" + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + "' , '" + compiledInfo[0] + "']] WHERE studentID = '" + jsonReq.get("id") + "'");
                                 } else
-                                    updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + " , " + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'", "%27") + " , " + compiledInfo[0] + "}}') WHERE studentID = '" + jsonReq.get("id") + "'");
+                                    updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , ARRAY[['" + assignmentID + "' , '" + jsonReq.get("code") + "' , '" + URLEncoder.encode(compiledInfo[1], "UTF-8").replaceAll("'" , "%27") + "' , '" + compiledInfo[0] + "']]) WHERE studentID = '" + jsonReq.get("id") + "'");
                                 if (updated == 0)
                                     return compiledInfo[1] + "\nCould not save please try again or use save button";
                                 else
