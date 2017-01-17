@@ -862,7 +862,7 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper();
         Map<String , String> code;
         try {
-            code = mapper.readValue(encodedCode.replaceAll("q$" , "\"") , new TypeReference<Map<String , String>>(){});
+            code = mapper.readValue(encodedCode.replaceAll("q\\$" , "\"") , new TypeReference<Map<String , String>>(){});
             String mainClass = URLDecoder.decode(code.get("mainClass") , "UTF-8");
             String input = URLDecoder.decode(encodedInput , "UTF-8");
             Iterator it = code.entrySet().iterator();
