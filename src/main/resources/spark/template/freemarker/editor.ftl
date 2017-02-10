@@ -170,7 +170,7 @@
 				if(currentID != "")
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				if($(this).hasClass("compileClass") && currentID != "")
-					classCompile = currentID;
+					compileClass = currentID;
 				$.ajax({
 					url: "/assignment/${id}",
 					method: 'POST' ,
