@@ -879,6 +879,7 @@ public class Main {
                 out.write(classCode);
                 out.close();
             }
+            System.out.println("Compile class is: " + compileClass);
             if(compileClass != null && !compileClass.equals("null")) {
                 System.out.println("Compile class is: " + compileClass);
                 System.out.println("Decoded version is: " + URLDecoder.decode(compileClass, "UTF-8"));
