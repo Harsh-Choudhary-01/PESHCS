@@ -879,7 +879,7 @@ public class Main {
                 out.write(classCode);
                 out.close();
             }
-            if(compileClass != null)
+            if(compileClass != null && !compileClass.equals("null"))
                 pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(compileClass , "UTF-8") + ".java");
             else
                 pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
