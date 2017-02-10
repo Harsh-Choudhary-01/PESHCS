@@ -879,10 +879,15 @@ public class Main {
                 out.write(classCode);
                 out.close();
             }
-            if(compileClass != null && !compileClass.equals("null"))
-                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(compileClass , "UTF-8") + ".java");
-            else
-                pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
+            if(compileClass != null && !compileClass.equals("null")) {
+                System.out.println("Compile class is: " + compileClass);
+                System.out.println("Decoded version is: " + URLDecoder.decode(compileClass, "UTF-8"));
+                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(compileClass, "UTF-8") + ".java");
+            }
+            else {
+                System.out.println("Not compile class doing main");
+                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + decodedMainClass + ".java");
+            }
             compileProcess = pb.start();
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String temp;
@@ -895,6 +900,7 @@ public class Main {
             }
             compileProcess.destroy();
             compileProcess.waitFor();
+            System.out.println("Output: " + output);
             if(!output.equals(""))
                 return new String[] {"No" , output};
             pb = new ProcessBuilder("/app/.jdk/bin/java" , "-classpath" ,  userID , decodedMainClass);
