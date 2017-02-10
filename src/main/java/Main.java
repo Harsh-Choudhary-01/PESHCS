@@ -852,7 +852,7 @@ public class Main {
             if(connection != null) try { connection.close(); } catch(SQLException e) {}
         }
     }
-    private static String[] compileCode(String encodedCode , String encodedInput , String userID , String classCompile) {
+    private static String[] compileCode(String encodedCode , String encodedInput , String userID , String compileClass) {
         BufferedReader stdOutput = null;
         BufferedReader runStdOutput = null;
         BufferedWriter runStdIn = null;
@@ -879,8 +879,8 @@ public class Main {
                 out.write(classCode);
                 out.close();
             }
-            if(classCompile != null)
-                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(classCompile , "UTF-8") + ".java");
+            if(compileClass != null)
+                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(compileClass , "UTF-8") + ".java");
             else
                 pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
             compileProcess = pb.start();

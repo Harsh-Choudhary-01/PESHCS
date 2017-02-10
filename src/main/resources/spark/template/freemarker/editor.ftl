@@ -166,7 +166,7 @@
 			});
 			$(".compile").click(function(e) {
 				e.preventDefault();
-				var classCompile = null;
+				var compileClass = null;
 				if(currentID != "")
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
 				if($(this).hasClass("compileClass") && currentID != "")
