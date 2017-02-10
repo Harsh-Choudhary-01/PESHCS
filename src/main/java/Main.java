@@ -551,7 +551,7 @@ public class Main {
                                 updated = stmt.executeUpdate("UPDATE students SET progress = array_cat(progress , '{{" + assignmentID + " , " + jsonReq.get("code") + ", No Output Please Run , N/A}}') WHERE userID = '" + user.get("user_id") + "'");
                         }
                         else if (jsonReq.get("type").equals("compile")) {
-                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), (String) user.get("user_id"));
+                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), (String) user.get("user_id") , jsonReq.get("compileClass"));
                             if (compiledInfo[0].equals("error"))
                                 return "error";
                             ResultSet rs = stmt.executeQuery("SELECT i FROM students a JOIN LATERAL generate_subscripts(a.progress , 1) i on a.progress[i:i][1] = '{{" + assignmentID + "}}' WHERE userID = '" + user.get("user_id") + "'");
@@ -569,7 +569,7 @@ public class Main {
                     }
                     else {
                         if (jsonReq.get("type").equals("compile")) {
-                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), jsonReq.get("id"));
+                            String[] compiledInfo = compileCode(jsonReq.get("code"), jsonReq.get("input"), jsonReq.get("id") , null);
                             if (compiledInfo[0].equals("error"))
                                 return "error";
                             if(jsonReq.get("editing").equals("true")) {
@@ -852,7 +852,7 @@ public class Main {
             if(connection != null) try { connection.close(); } catch(SQLException e) {}
         }
     }
-    private static String[] compileCode(String encodedCode , String encodedInput , String userID) {
+    private static String[] compileCode(String encodedCode , String encodedInput , String userID , String classCompile) {
         BufferedReader stdOutput = null;
         BufferedReader runStdOutput = null;
         BufferedWriter runStdIn = null;
@@ -879,7 +879,10 @@ public class Main {
                 out.write(classCode);
                 out.close();
             }
-            pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
+            if(classCompile != null)
+                pb = new ProcessBuilder("/app/.jdk/bin/javac", "-classpath", userID, userID + "/" + URLDecoder.decode(classCompile , "UTF-8") + ".java");
+            else
+                pb = new ProcessBuilder("/app/.jdk/bin/javac" , "-classpath" , userID , userID + "/" + decodedMainClass + ".java");
             compileProcess = pb.start();
             stdOutput = new BufferedReader(new InputStreamReader(compileProcess.getErrorStream()));
             String temp;

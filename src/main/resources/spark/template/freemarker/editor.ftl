@@ -33,7 +33,10 @@
 					<h1 class="major">${assignment[0]}</h1>
 					<ul class="actions fit classes"></ul>
 					<ul class="actions fit">
-						<li><a href="#" class="button special fit compile">Compile/Save</a></li>
+						<li><a href="#" class="button special fit compile">Run/Save Main</a></li>
+						<li><a href="#" class="button special fit compile compileClass">Compile Class</a></li>
+					</ul>
+					<ul class="actions fit">
 						<li><a href="#" class="button special fit reqHelp">Help</a></li>
 					</ul>
 				</div>
@@ -163,13 +166,16 @@
 			});
 			$(".compile").click(function(e) {
 				e.preventDefault();
+				var classCompile = null;
 				if(currentID != "")
 					codeData[currentID] = encodeURIComponent(editor.getValue()).replace(/'/g, "%27");
+				if($(this).hasClass("compileClass") && currentID != "")
+					classCompile = currentID;
 				$.ajax({
 					url: "/assignment/${id}",
 					method: 'POST' ,
 					dataType: 'text' ,
-					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '"}' ,
+					data: '{"code" : "' + JSON.stringify(codeData).replace(/"/g , 'q$') + '" , "type" : "compile" , "input" : "' + encodeURIComponent($('.stdin').val()).replace(/'/g, "%27") + '" , "id" : "' +  currentStudent + '" , "editing" : "' + editing + '" , "compileClass" : "' + compileClass + '"}' ,
 					success: function(data) {
 						window.location.hash = '';
 						window.location.hash = "output";
